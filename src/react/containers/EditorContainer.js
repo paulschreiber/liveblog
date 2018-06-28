@@ -360,7 +360,6 @@ EditorContainer.propTypes = {
 };
 
 const mapStateToProps = (state) => {
-  console.log(state);
   return ({
     ...state,
     canPublish: state.api.enabled,

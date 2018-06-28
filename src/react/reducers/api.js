@@ -69,7 +69,6 @@ export const api = (state = initialState, action) => {
       };
 
     case 'POSTING_ENABLED':
-      console.log('POLLING ENABLED', action);
       return {
         ...state,
         enabled: action.enabled,
