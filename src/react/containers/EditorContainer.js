@@ -247,8 +247,7 @@ class EditorContainer extends Component {
       readOnly,
       headline,
     } = this.state;
-
-    const { isEditing, config, usetinymce } = this.props;
+    const { isEditing, config, usetinymce, canPublish } = this.props;
     const authorIds = authors ?
       authors.map((author) => {
         if (author && author.id) {
@@ -338,6 +337,7 @@ class EditorContainer extends Component {
           cache={false}
         />
         <button
+          disabled={ canPublish ? '' : 'disabled'}
           className="button button-primary button-large liveblog-btn liveblog-publish-btn"
           onClick={this.publish.bind(this)}>
           {isEditing ? 'Save' : 'Post Update'}
@@ -359,7 +359,13 @@ EditorContainer.propTypes = {
   getAuthors: PropTypes.func,
 };
 
-const mapStateToProps = state => state;
+const mapStateToProps = (state) => {
+  console.log(state);
+  return ({
+    ...state,
+    canPublish: state.api.enabled,
+  });
+};
 
 const mapDispatchToProps = dispatch =>
   bindActionCreators({
