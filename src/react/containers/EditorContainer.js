@@ -359,12 +359,10 @@ EditorContainer.propTypes = {
   getAuthors: PropTypes.func,
 };
 
-const mapStateToProps = (state) => {
-  return ({
-    ...state,
-    canPublish: state.api.enabled,
-  });
-};
+const mapStateToProps = state => ({
+  ...state,
+  canPublish: state.api.enabled,
+});
 
 const mapDispatchToProps = dispatch =>
   bindActionCreators({
