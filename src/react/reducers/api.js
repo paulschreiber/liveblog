@@ -68,6 +68,12 @@ export const api = (state = initialState, action) => {
           : state.newestEntry,
       };
 
+    case 'POSTING_ENABLED':
+      return {
+        ...state,
+        enabled: action.enabled,
+      };
+
     case 'CREATE_ENTRY_SUCCESS':
       return {
         ...state,
