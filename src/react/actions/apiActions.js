@@ -54,6 +54,11 @@ export const createEntrySuccess = payload => ({
   payload,
 });
 
+export const setPostingEnabled = enabled => ({
+  type: types.POSTING_ENABLED,
+  enabled,
+});
+
 export const createEntryFailed = () => ({
   type: types.CREATE_ENTRY_FAILED,
   error: true,
