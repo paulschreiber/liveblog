@@ -68,6 +68,13 @@ export const api = (state = initialState, action) => {
           : state.newestEntry,
       };
 
+    case 'POSTING_ENABLED':
+      console.log('POLLING ENABLED', action);
+      return {
+        ...state,
+        enabled: action.enabled,
+      };
+
     case 'CREATE_ENTRY_SUCCESS':
       return {
         ...state,
