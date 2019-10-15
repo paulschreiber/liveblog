@@ -122,9 +122,7 @@ if ( ! class_exists( 'WPCOM_Liveblog' ) ) :
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-key-events-widget.php';
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-extend.php';
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-extend-feature.php';
-			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-extend-feature-hashtags.php';
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-extend-feature-commands.php';
-			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-extend-feature-emojis.php';
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-entry-extend-feature-authors.php';
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-helpers.php';
 			require dirname( __FILE__ ) . '/classes/class-wpcom-liveblog-lazyloader.php';
@@ -1105,9 +1103,7 @@ if ( ! class_exists( 'WPCOM_Liveblog' ) ) :
 		 */
 		public static function enqueue_scripts() {
 
-			$back_end_blogging = apply_filters( 'liveblog_back_end_liveblogging', false );
-
-			if ( ! self::is_viewing_liveblog_post() && ! ( $back_end_blogging && is_admin() ) ) {
+			if ( ! self::is_viewing_liveblog_post() && ! is_admin() ) {
 				return;
 			}
 
@@ -1138,9 +1134,7 @@ if ( ! class_exists( 'WPCOM_Liveblog' ) ) :
 			self::$latest_timestamp = $entry_query->get_latest_timestamp();
 
 			// Use the TinyMCE Editor.
-			if ( apply_filters( 'liveblog_back_end_liveblogging', false ) ) {
-				wp_enqueue_editor();
-			}
+			wp_enqueue_editor();
 
 			$editor_styles = self::get_tinymce_editor_stylesheet();
 
@@ -1186,7 +1180,6 @@ if ( ! class_exists( 'WPCOM_Liveblog' ) ) :
 						'use_rest_api'                 => intval( self::use_rest_api() ),
 						'endpoint_url'                 => self::get_entries_endpoint_url(),
 						'prefill_author_field'         => apply_filters( 'liveblog_prefill_author_field', true ),
-						'backend_liveblogging'         => apply_filters( 'liveblog_back_end_liveblogging', false ),
 						'use_tinymce'                  => apply_filters( 'liveblog_use_tinymce_editor', false ),
 						'editorSettings'               => apply_filters(
 							'liveblog_tinymce_editor_settings',
