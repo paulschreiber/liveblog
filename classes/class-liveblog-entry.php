@@ -668,9 +668,10 @@ class Liveblog_Entry {
 		if ( ! $lock ) {
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {
-			$entry                              = self::from_post( $entry_post );
-			$entry->type                        = 'update';
+			$entry                             = self::from_post( $entry_post );
+			$entry->type                       = 'update';
 			$entry->locked                     = true;
+			$entry->locked_user                = get_current_user_id();
 			$locked_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 

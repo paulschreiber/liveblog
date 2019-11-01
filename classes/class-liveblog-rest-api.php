@@ -122,6 +122,32 @@ class Liveblog_Rest_Api {
 		);
 
 		/*
+		 * Set and entry as locked
+		 *
+		 * /<post_id>/lock
+		 *
+		 */
+		register_rest_route(
+			self::$api_namespace,
+			'/(?P<post_id>\d+)/lock([/]*)',
+			[
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'lock_entry' ],
+				'permission_callback' => [ 'Liveblog', 'current_user_can_edit_liveblog' ],
+				'args'                => [
+					'post_id'     => [
+						'required'          => false,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_numeric' ],
+					],
+					'entry_id'    => [
+						'required'          => false,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_numeric' ],
+					],
+				],
+			]
+		);
+
+		/*
 		 * Get entries for a post for lazyloading on the page
 		 *
 		 * /<post_id>/lazyload/<max_time>/<min_time>
@@ -405,6 +431,31 @@ class Liveblog_Rest_Api {
 
 		// Possibly do not cache the response
 		Liveblog::prevent_caching_if_needed();
+
+		return $entry;
+	}
+
+	/**
+	 * Lock an entry when being edited
+	 *
+	 * @param WP_REST_Request $request A REST request object
+	 *
+	 * @return mixed
+	 */
+	public static function lock_entry( WP_REST_Request $request ) {
+
+		$json = $request->get_json_params();
+
+		$post_id    = self::get_json_param( 'post_id', $json );
+		$entry_id   = self::get_json_param( 'entry_id', $json );
+		$entry_post = get_post( $entry_id );
+
+		Liveblog_Entry::toggle_entry_lock( $entry_post, $post_id, true );
+
+		$entry              = self::from_post( $entry_post );
+		$entry->type        = 'update';
+		$entry->locked      = true;
+		$entry->locked_user = get_current_user_id();
 
 		return $entry;
 	}
