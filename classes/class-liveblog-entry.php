@@ -677,6 +677,24 @@ class Liveblog_Entry {
 
 		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog' );
 	}
+
+	/**
+	 * Return a list of locked entries
+	 *
+	 * @param $liveblog_id
+	 *
+	 * @return array
+	 */
+	public function get_locked_entries( $liveblog_id ) {
+		$cached_key      = 'lock_entries_' . $liveblog_id;
+		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
+
+		if ( empty( $locked_entries ) ) {
+			return [];
+		}
+
+		return array_values( $locked_entries );
+	}
 }
 
 Liveblog_Entry::generate_allowed_tags_for_entry();

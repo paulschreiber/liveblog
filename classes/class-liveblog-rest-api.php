@@ -122,7 +122,7 @@ class Liveblog_Rest_Api {
 		);
 
 		/*
-		 * Set and entry as locked
+		 * Lock an entry when being edited
 		 *
 		 * /<post_id>/lock
 		 *
