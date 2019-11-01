@@ -260,6 +260,9 @@ class Liveblog_Entry {
 			self::store_updated_entries( $entry_post, $entry_post->post_parent );
 		}
 
+		//Remove entry lock
+		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
+
 		$entry       = self::from_post( $entry_post );
 		$entry->type = 'update';
 
@@ -651,6 +654,27 @@ class Liveblog_Entry {
 		}
 
 		return $entries;
+	}
+
+	public static function toggle_entry_lock( $entry_post, $liveblog_id, $lock = false ) {
+		$cached_key     = 'lock_entries_' . $liveblog_id;
+
+		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
+
+		if ( empty( $locked_entries ) || ! is_array( $locked_entries ) ) {
+			$locked_entries = [];
+		}
+
+		if ( ! $lock ) {
+			unset( $locked_entries[ $entry_post->ID ] );
+		} else {
+			$entry                              = self::from_post( $entry_post );
+			$entry->type                        = 'update';
+			$entry->locked                     = true;
+			$locked_entries[ $entry_post->ID ] = $entry->for_json();
+		}
+
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog' );
 	}
 }
 
