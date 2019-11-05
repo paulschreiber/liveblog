@@ -123,6 +123,8 @@ class EntryContainer extends Component {
 
     return (
       <footer className="liveblog-entry-tools">
+        { isLocked && <span className="dashicons dashicons-lock"></span> }
+
         <button
           className="liveblog-btn liveblog-btn-small liveblog-btn-edit"
           onClick={this.edit}
@@ -162,7 +164,6 @@ class EntryContainer extends Component {
 
   render() {
     const { entry, config } = this.props;
-    const isLocked = this.isLockedEntry();
 
     // Filter out empty authors.
     entry.authors = Array.isArray(entry.authors) && entry.authors.filter(author => (author.id !== null && author.name !== null && author.key !== ''));
@@ -216,7 +217,6 @@ class EntryContainer extends Component {
             </a>
             { entry.headline &&
               <h2 className="liveblog-entry-header">
-                { config.is_admin && isLocked && <span className="dashicons dashicons-lock"></span> }
                 {entry.headline}
               </h2>
             }
