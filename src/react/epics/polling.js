@@ -32,7 +32,7 @@ const startPollingEpic = (action$, store) =>
         .takeUntil(action$.ofType(types.CANCEL_POLLING))
         .exhaustMap(() =>
           pollingApi(store.getState().polling.newestEntry.timestamp, store.getState().config)
-            .timeout(60000)
+            .timeout(10000)
             .map(res =>
               pollingSuccess(
                 res.response,

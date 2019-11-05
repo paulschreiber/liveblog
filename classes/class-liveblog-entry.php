@@ -686,6 +686,7 @@ class Liveblog_Entry {
 		}
 
 		if ( ! $lock ) {
+			// add entry to updated entries cache to unlock it for othe editors
 			self::store_updated_entries( $entry_post, $liveblog_id );
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {
