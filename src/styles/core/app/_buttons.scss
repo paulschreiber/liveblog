@@ -79,3 +79,7 @@
 .liveblog-pagination-btn.liveblog-pagination-loadmore {
   margin: 10px auto;
 }
+
+button.liveblog-btn:disabled {
+    background: #ccc;
+}

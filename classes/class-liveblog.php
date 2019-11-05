@@ -552,13 +552,12 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			}
 
 			// append updated entries to the response if they exist. This should only be called from the admin
-			if( self::current_user_can_edit_liveblog() ){
+			if ( self::current_user_can_edit_liveblog() ) {
 				$locked_entries = Liveblog_Entry::get_locked_entries( self::$post_id );
 				if ( ! empty( $locked_entries ) ) {
 					$entries_for_json = array_filter( array_merge( $entries_for_json, $locked_entries ) );
 				}
 			}
-
 
 			// append locked entries to the response if they exist
 			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );

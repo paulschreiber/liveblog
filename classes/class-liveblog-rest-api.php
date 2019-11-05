@@ -135,13 +135,18 @@ class Liveblog_Rest_Api {
 				'callback'            => [ __CLASS__, 'lock_entry' ],
 				'permission_callback' => [ 'Liveblog', 'current_user_can_edit_liveblog' ],
 				'args'                => [
-					'post_id'     => [
-						'required'          => false,
+					'post_id'  => [
+						'required'          => true,
 						'sanitize_callback' => [ __CLASS__, 'sanitize_numeric' ],
 					],
-					'entry_id'    => [
-						'required'          => false,
+					'entry_id' => [
+						'required'          => true,
 						'sanitize_callback' => [ __CLASS__, 'sanitize_numeric' ],
+					],
+					'lock'     => [
+						'required'          => true,
+						'default'           => false,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_boolean' ],
 					],
 				],
 			]
@@ -448,14 +453,15 @@ class Liveblog_Rest_Api {
 
 		$post_id    = self::get_json_param( 'post_id', $json );
 		$entry_id   = self::get_json_param( 'entry_id', $json );
+		$lock       = self::get_json_param( 'lock', $json );
 		$entry_post = get_post( $entry_id );
 
-		Liveblog_Entry::toggle_entry_lock( $entry_post, $post_id, true );
+		Liveblog_Entry::toggle_entry_lock( $entry_post, $post_id, boolval( $lock ) );
 
-		$entry              = self::from_post( $entry_post );
-		$entry->type        = 'update';
-		$entry->locked      = true;
+		$entry              = Liveblog_Entry::from_post( $entry_post );
+		$entry->locked      = $lock;
 		$entry->locked_user = get_current_user_id();
+		$entry->set_type( 'update' );
 
 		return $entry;
 	}
@@ -710,6 +716,16 @@ class Liveblog_Rest_Api {
 	 */
 	public static function sanitize_numeric( $param, $request, $key ) {
 		return ( ! empty( $param ) && is_numeric( $param ) ? intval( $param ) : 0 );
+	}
+
+	/**
+	 * Sanitization callback to ensure a boolean value
+	 *
+	 * @return int $param as an boolean. false if $param is not boolean
+	 */
+	public static function sanitize_boolean( $param, $request, $key ) {
+		$boolean = filter_var( $param, FILTER_VALIDATE_BOOLEAN );
+		return is_null( $boolean ) ? false : $boolean;
 	}
 
 	/**

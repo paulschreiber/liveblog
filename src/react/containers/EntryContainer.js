@@ -33,7 +33,10 @@ class EntryContainer extends Component {
     };
     this.edit = (event) => {
       event.preventDefault();
-      this.props.entryEditOpen(this.props.entry.id);
+      this.props.entryEditOpen({
+        entryId: this.props.entry.id,
+        config: this.props.config,
+      });
     };
     this.updateStatus = (status) => {
       const { entry, updateEntry } = this.props;
@@ -73,6 +76,14 @@ class EntryContainer extends Component {
     });
   }
 
+  isLockedEntry() {
+    const { locked } = this.props.entry;
+    const currentUser = parseInt(this.props.config.current_user.id, 10);
+    const lockedUser = parseInt(this.props.entry.locked_user, 10);
+    const isLocked = locked && lockedUser !== currentUser;
+    return isLocked;
+  }
+
   componentDidMount() {
     const { activateScrolling } = this.props.entry;
     triggerOembedLoad(this.node);
@@ -100,10 +111,11 @@ class EntryContainer extends Component {
   }
 
   entryActions() {
-    const { config, entry } = this.props;
+    const { entry, config } = this.props;
     const { status } = entry;
     const statusLabel = 'publish' === status ? 'Unpublish' : 'Publish';
     const newStatus = 'publish' === status ? 'draft' : 'publish';
+    const isLocked = this.isLockedEntry();
 
     if (!config.is_admin) {
       return false;
@@ -114,7 +126,7 @@ class EntryContainer extends Component {
         <button
           className="liveblog-btn liveblog-btn-small liveblog-btn-edit"
           onClick={this.edit}
-          disabled={this.state.updating}
+          disabled={this.state.updating || isLocked}
         >
           Edit
         </button>
@@ -124,13 +136,13 @@ class EntryContainer extends Component {
             event.preventDefault();
             this.updateStatus(newStatus);
           } } key={entry.entry_time}
-          disabled={this.state.updating}>
+          disabled={this.state.updating || isLocked}>
           {statusLabel}{this.state.updating ? '…' : ''}
         </button>
         <button
           className="liveblog-btn liveblog-btn-small liveblog-btn-delete"
           onClick={this.togglePopup.bind(this)}
-          disabled={this.state.updating}>
+          disabled={this.state.updating || isLocked}>
           Delete
         </button>
       </footer>
@@ -150,6 +162,7 @@ class EntryContainer extends Component {
 
   render() {
     const { entry, config } = this.props;
+    const isLocked = this.isLockedEntry();
 
     // Filter out empty authors.
     entry.authors = Array.isArray(entry.authors) && entry.authors.filter(author => (author.id !== null && author.name !== null && author.key !== ''));
@@ -203,6 +216,7 @@ class EntryContainer extends Component {
             </a>
             { entry.headline &&
               <h2 className="liveblog-entry-header">
+                { config.is_admin && isLocked && <span className="dashicons dashicons-lock"></span> }
                 {entry.headline}
               </h2>
             }

@@ -84,6 +84,18 @@ class Liveblog_Entry {
 		return $this->type;
 	}
 
+	public function get_locked() {
+		return $this->locked ?? false;
+	}
+
+	public function get_locked_by() {
+		return $this->locked_user ?? 0;
+	}
+
+	public function set_type( $type ) {
+		$this->type = $type;
+	}
+
 	/**
 	 * Get the GMT timestamp for the entry
 	 *
@@ -165,6 +177,8 @@ class Liveblog_Entry {
 			'entry_time'  => $this->get_entry_date_gmt( 'U', $entry_id ),
 			'share_link'  => $share_link,
 			'status'      => self::get_status(),
+			'locked'      => self::get_locked(),
+			'locked_user' => self::get_locked_by(),
 		];
 
 
@@ -616,7 +630,6 @@ class Liveblog_Entry {
 			$updated_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 
-
 		wp_cache_set( $cached_key, $updated_entries, 'liveblog', 30 ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.LowCacheTime
 	}
 
@@ -656,8 +669,15 @@ class Liveblog_Entry {
 		return $entries;
 	}
 
+	/**
+	 * Add and remove entries from the lock entry cache
+	 *
+	 * @param      $entry_post
+	 * @param      $liveblog_id
+	 * @param bool $lock
+	 */
 	public static function toggle_entry_lock( $entry_post, $liveblog_id, $lock = false ) {
-		$cached_key     = 'lock_entries_' . $liveblog_id;
+		$cached_key = 'lock_entries_' . $liveblog_id;
 
 		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
 
@@ -666,6 +686,7 @@ class Liveblog_Entry {
 		}
 
 		if ( ! $lock ) {
+			self::store_updated_entries( $entry_post, $liveblog_id );
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {
 			$entry                             = self::from_post( $entry_post );
@@ -675,7 +696,7 @@ class Liveblog_Entry {
 			$locked_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 
-		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog' );
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', DAY_IN_SECONDS );
 	}
 
 	/**
@@ -686,14 +707,14 @@ class Liveblog_Entry {
 	 * @return array
 	 */
 	public function get_locked_entries( $liveblog_id ) {
-		$cached_key      = 'lock_entries_' . $liveblog_id;
+		$cached_key     = 'lock_entries_' . $liveblog_id;
 		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
 
 		if ( empty( $locked_entries ) ) {
 			return [];
 		}
 
-		return array_values( $locked_entries );
+		return $locked_entries;
 	}
 }
 
