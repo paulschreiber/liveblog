@@ -274,7 +274,7 @@ class Liveblog_Webhook_API {
 					}
 				} elseif ( $is_oembed ) {
 					// append new line to oembeds so that you can have back to back embed links
-					$link = $match[1] . PHP_EOL;
+					$link = PHP_EOL . $match[1] . PHP_EOL;
 				}
 
 				return $link;
