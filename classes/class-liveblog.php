@@ -10,7 +10,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 	final class Liveblog {
 
 		/** Constants *************************************************************/
-		const VERSION                 = '1.9.74';
+		const VERSION                 = '1.9.75';
 		const REWRITES_VERSION        = 1;
 		const MIN_WP_VERSION          = '4.4';
 		const MIN_WP_REST_API_VERSION = '4.4';
