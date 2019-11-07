@@ -702,7 +702,7 @@ class Liveblog_Entry {
 			$locked_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 
-		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', DAY_IN_SECONDS );
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', HOUR_IN_SECONDS );
 	}
 
 	/**
