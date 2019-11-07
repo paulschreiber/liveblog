@@ -29,7 +29,7 @@ class EntryContainer extends Component {
 
     this.isEditing = () => {
       const { user, entry } = this.props;
-      return user.entries[entry.id] && user.entries[entry.id].isEditing;
+      return user.entries[entry.id] && user.entries[entry.id].isEditing && !this.isLockedEntry();
     };
     this.edit = (event) => {
       event.preventDefault();
