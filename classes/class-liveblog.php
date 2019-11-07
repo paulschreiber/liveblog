@@ -405,10 +405,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			$user = wp_get_current_user();
 
 			return [
-				'id'     => $user->ID,
-				'key'    => strtolower( $user->user_nicename ),
-				'name'   => $user->display_name,
-				'avatar' => self::get_avatar( $user->ID, 20 ),
+				'id'         => $user->ID,
+				'key'        => strtolower( $user->user_nicename ),
+				'name'       => $user->display_name,
+				'avatar'     => self::get_avatar( $user->ID, 20 ),
+				'can_unlock' => current_user_can( 'manage_options' ),
 			];
 		}
 

@@ -123,30 +123,36 @@ class EntryContainer extends Component {
 
     return (
       <footer className="liveblog-entry-tools">
-        { isLocked && <span className="dashicons dashicons-lock"></span> }
+        { isLocked && <div className="locked-info">
+          <span className="locked-avatar">{entry.locked_user.avatar}</span>
+          <span className="locked-text">{entry.locked_user.name} is currently editing</span>
+        </div> }
 
-        <button
-          className="liveblog-btn liveblog-btn-small liveblog-btn-edit"
-          onClick={this.edit}
-          disabled={this.state.updating || isLocked}
-        >
-          Edit
-        </button>
-        <button
-          className={`liveblog-btn liveblog-btn-small liveblog-btn-status ${newStatus}`}
-          onClick={ (event) => {
-            event.preventDefault();
-            this.updateStatus(newStatus);
-          } } key={entry.entry_time}
-          disabled={this.state.updating || isLocked}>
-          {statusLabel}{this.state.updating ? '…' : ''}
-        </button>
-        <button
-          className="liveblog-btn liveblog-btn-small liveblog-btn-delete"
-          onClick={this.togglePopup.bind(this)}
-          disabled={this.state.updating || isLocked}>
-          Delete
-        </button>
+        <div className="liveblog-entry-actions">
+          { isLocked && <span className="dashicons dashicons-lock"></span> }
+          <button
+            className="liveblog-btn liveblog-btn-small liveblog-btn-edit"
+            onClick={this.edit}
+            disabled={this.state.updating || (isLocked && !config.current_user.can_unlock)}
+          >
+            Edit
+          </button>
+          <button
+            className={`liveblog-btn liveblog-btn-small liveblog-btn-status ${newStatus}`}
+            onClick={ (event) => {
+              event.preventDefault();
+              this.updateStatus(newStatus);
+            } } key={entry.entry_time}
+            disabled={this.state.updating || isLocked}>
+            {statusLabel}{this.state.updating ? '…' : ''}
+          </button>
+          <button
+            className="liveblog-btn liveblog-btn-small liveblog-btn-delete"
+            onClick={this.togglePopup.bind(this)}
+            disabled={this.state.updating || isLocked}>
+            Delete
+          </button>
+        </div>
       </footer>
     );
   }

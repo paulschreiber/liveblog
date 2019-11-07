@@ -690,10 +690,15 @@ class Liveblog_Entry {
 			self::store_updated_entries( $entry_post, $liveblog_id );
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {
+			$user                              = wp_get_current_user();
 			$entry                             = self::from_post( $entry_post );
 			$entry->type                       = 'update';
 			$entry->locked                     = true;
-			$entry->locked_user                = get_current_user_id();
+			$entry->locked_user                = [
+				'id'     => $user->ID,
+				'name'   => $user->display_name,
+				'avatar' => Liveblog::get_avatar( $user->ID, 18 ),
+			];
 			$locked_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 
