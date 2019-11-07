@@ -690,6 +690,7 @@ class Liveblog_Entry {
 			self::store_updated_entries( $entry_post, $liveblog_id );
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {
+			add_filter( 'liveblog_fetch_avatar_data', '__return_true' );
 			$user                              = wp_get_current_user();
 			$entry                             = self::from_post( $entry_post );
 			$entry->type                       = 'update';

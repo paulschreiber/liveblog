@@ -79,7 +79,7 @@ class EntryContainer extends Component {
   isLockedEntry() {
     const { locked } = this.props.entry;
     const currentUser = parseInt(this.props.config.current_user.id, 10);
-    const lockedUser = parseInt(this.props.entry.locked_user, 10);
+    const lockedUser = parseInt(this.props.entry.locked_user.id, 10);
     const isLocked = locked && lockedUser !== currentUser;
     return isLocked;
   }
