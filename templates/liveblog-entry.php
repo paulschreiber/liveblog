@@ -32,7 +32,7 @@ foreach ( get_coauthors( $entry->ID ) as $coauthor ) {
 			<?php echo wp_kses_post( $entry->post_content ); ?>
 		</div>
 
-<div class="liveblog-share" id="<?php echo esc_attr( 'liveblog-update-' . $entry->ID . '-share' ); ?>" data-update-id="<?php echo esc_attr( $entry->ID ); ?>">
+<div class="liveblog-share" id="<?php echo esc_attr( 'liveblog-update-' . $entry->ID . '-share' ); ?>">
 	<button class="share-social share-facebook"></button>
 	<button class="share-social share-twitter"></button>
 </div>
