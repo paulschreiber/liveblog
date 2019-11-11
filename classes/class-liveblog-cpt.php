@@ -148,7 +148,7 @@ class Liveblog_CPT {
 	public static function rewrite_rules( $rules ) {
 
 		// Unset the broken rule.
-		unset( $rules[ 'live-blog/(.+?)(?:/([0-9]+))?/?$' ] );
+		unset( $rules['live-blog/(.+?)(?:/([0-9]+))?/?$'] );
 
 		// Matches live-blog/post-name/
 		$rules['live-blog/([^/]+)/?$'] = 'index.php?fte_liveblog=$matches[1]';

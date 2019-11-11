@@ -1,6 +1,6 @@
 <?php
-$post         = $template_variables['post'];
-$authordata   = [];
+$post       = $template_variables['post'];
+$authordata = [];
 foreach ( get_coauthors( $post->ID ) as $c ) {
 	$authordata[] = [
 		'name'      => $c->display_name,
