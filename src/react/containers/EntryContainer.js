@@ -141,7 +141,7 @@ class EntryContainer extends Component {
     const { entry } = this.props;
 
     return (
-      <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`} data-update-id={entry.id}>
+      <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`}>
         <button className="share-social share-facebook"></button>
         <button className="share-social share-twitter"></button>
       </div>
