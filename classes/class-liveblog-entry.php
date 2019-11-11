@@ -151,7 +151,7 @@ class Liveblog_Entry {
 		}
 
 		$css_classes = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
-		$share_link  = add_query_arg( [ 'lbup' => $entry_id ], get_permalink( $this->get_post_id() ) );
+		$share_link  = get_permalink( $entry_id );
 
 		$entry = [
 			'id'          => $entry_id,
