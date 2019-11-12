@@ -33,8 +33,8 @@ export const polling = (state = initialState, action) => {
           ? action.payload.pages
           : state.pages,
         total: action.payload.total
-        ? action.payload.total
-        : state.total
+          ? action.payload.total
+          : state.total,
       };
 
       return newState;
