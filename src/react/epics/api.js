@@ -106,7 +106,10 @@ const updateEntryEpic = (action$, store) =>
         .flatMap(res =>
           concat(
             of(updateEntrySuccess(res.response)),
-            of(entryEditClose(res.response.entries[0].id)),
+            of(entryEditClose({
+              entryId: res.response.entries[0].id,
+              config: store.getState().api,
+            })),
           ),
         )
         .catch(

@@ -81,7 +81,10 @@ class EditorContainer extends Component {
 
     this.close = (event) => {
       event.preventDefault();
-      this.props.entryEditClose(this.props.entry.id);
+      this.props.entryEditClose({
+        entryId: this.props.entry.id,
+        config: this.props.config,
+      });
     };
 
     this.setError = (error, errorMessage) => this.setState({

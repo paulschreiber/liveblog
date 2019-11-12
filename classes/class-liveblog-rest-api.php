@@ -122,6 +122,37 @@ class Liveblog_Rest_Api {
 		);
 
 		/*
+		 * Lock an entry when being edited
+		 *
+		 * /<post_id>/lock
+		 *
+		 */
+		register_rest_route(
+			self::$api_namespace,
+			'/(?P<post_id>\d+)/lock([/]*)',
+			[
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => [ __CLASS__, 'lock_entry' ],
+				'permission_callback' => [ 'Liveblog', 'current_user_can_edit_liveblog' ],
+				'args'                => [
+					'post_id'  => [
+						'required'          => true,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_numeric' ],
+					],
+					'entry_id' => [
+						'required'          => true,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_numeric' ],
+					],
+					'lock'     => [
+						'required'          => true,
+						'default'           => false,
+						'sanitize_callback' => [ __CLASS__, 'sanitize_boolean' ],
+					],
+				],
+			]
+		);
+
+		/*
 		 * Get entries for a post for lazyloading on the page
 		 *
 		 * /<post_id>/lazyload/<max_time>/<min_time>
@@ -410,6 +441,32 @@ class Liveblog_Rest_Api {
 	}
 
 	/**
+	 * Lock an entry when being edited
+	 *
+	 * @param WP_REST_Request $request A REST request object
+	 *
+	 * @return mixed
+	 */
+	public static function lock_entry( WP_REST_Request $request ) {
+
+		$json = $request->get_json_params();
+
+		$post_id    = self::get_json_param( 'post_id', $json );
+		$entry_id   = self::get_json_param( 'entry_id', $json );
+		$lock       = self::get_json_param( 'lock', $json );
+		$entry_post = get_post( $entry_id );
+
+		Liveblog_Entry::toggle_entry_lock( $entry_post, $post_id, boolval( $lock ) );
+
+		$entry              = Liveblog_Entry::from_post( $entry_post );
+		$entry->locked      = $lock;
+		$entry->locked_user = get_current_user_id();
+		$entry->set_type( 'update' );
+
+		return $entry;
+	}
+
+	/**
 	 * Get entries for a post for lazyloading on the page
 	 *
 	 * @param WP_REST_Request $request A REST request object
@@ -659,6 +716,16 @@ class Liveblog_Rest_Api {
 	 */
 	public static function sanitize_numeric( $param, $request, $key ) {
 		return ( ! empty( $param ) && is_numeric( $param ) ? intval( $param ) : 0 );
+	}
+
+	/**
+	 * Sanitization callback to ensure a boolean value
+	 *
+	 * @return int $param as an boolean. false if $param is not boolean
+	 */
+	public static function sanitize_boolean( $param, $request, $key ) {
+		$boolean = filter_var( $param, FILTER_VALIDATE_BOOLEAN );
+		return is_null( $boolean ) ? false : $boolean;
 	}
 
 	/**
