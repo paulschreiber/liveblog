@@ -10,7 +10,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 	final class Liveblog {
 
 		/** Constants *************************************************************/
-		const VERSION                 = '1.9.74';
+		const VERSION                 = '1.9.75';
 		const REWRITES_VERSION        = 1;
 		const MIN_WP_VERSION          = '4.4';
 		const MIN_WP_REST_API_VERSION = '4.4';
@@ -142,6 +142,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			require dirname( __FILE__ ) . '/slack/tools/class-liveblog-export-authors.php';
 			require dirname( __FILE__ ) . '/slack/tools/class-liveblog-import-authors-slack-id.php';
 			require dirname( __FILE__ ) . '/slack/tools/class-liveblog-markdown-parser.php';
+			require dirname( __FILE__ ) . '/slack/tools/class-liveblog-emoji-parser.php';
 			require dirname( __FILE__ ) . '/slack/class-liveblog-slack.php';
 
 
@@ -209,6 +210,9 @@ if ( ! class_exists( 'Liveblog' ) ) :
 
 			// don't index child posts in sitemap
 			add_filter( 'jetpack_sitemap_skip_post', [ __CLASS__, 'jetpack_sitemap_skip_post' ], 10, 2 );
+
+			// don't include child posts in search results
+			add_filter( 'jetpack_search_es_query_args', [ __CLASS__, 'jetpack_search_es_query_args' ], 10, 2 );
 		}
 
 		/**
@@ -251,12 +255,34 @@ if ( ! class_exists( 'Liveblog' ) ) :
 		 *
 		 * @return bool
 		 */
-		public static function exclude_post_sitemap( $skip, $post ) {
+		public static function jetpack_sitemap_skip_post( $skip, $post ) {
 			if ( Liveblog_CPT::$cpt_slug === $post->post_type && 0 !== $post->post_parent ) {
 				$skip = true;
 			}
 
 			return $skip;
+		}
+
+		/**
+		 * Exclude liveblog child posts from search results
+		 *
+		 * @param array    $args  The Elasticsearch query args
+		 * @param WP_Query $query The WP_Query object
+		 * @return array          The modified array
+		 */
+		public static function jetpack_search_es_query_args( $args, $query ) {
+			if ( is_array( $args ) ) {
+				$args['authenticated_request'] = true;
+			}
+			// Limit Jetpack Search to only posts with no parent
+			if ( is_array( $args['query']['function_score']['query']['bool']['must'] ) ) {
+				$args['query']['function_score']['query']['bool']['must'][] = [
+					'match' => [
+						'parent_post_id' => 0,
+					],
+				];
+			}
+			return $args;
 		}
 
 		/**
@@ -379,10 +405,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			$user = wp_get_current_user();
 
 			return [
-				'id'     => $user->ID,
-				'key'    => strtolower( $user->user_nicename ),
-				'name'   => $user->display_name,
-				'avatar' => self::get_avatar( $user->ID, 20 ),
+				'id'         => $user->ID,
+				'key'        => strtolower( $user->user_nicename ),
+				'name'       => $user->display_name,
+				'avatar'     => self::get_avatar( $user->ID, 20 ),
+				'can_unlock' => apply_filters( 'unlock_liveblog_entry_cap', current_user_can( 'manage_options' ) ),
 			];
 		}
 
@@ -525,7 +552,15 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $hidden_entries ) );
 			}
 
-			// append updated entries to the response if they exist
+			// append updated entries to the response if they exist. This should only be called from the admin
+			if ( self::current_user_can_edit_liveblog() ) {
+				$locked_entries = Liveblog_Entry::get_locked_entries( self::$post_id );
+				if ( ! empty( $locked_entries ) ) {
+					$entries_for_json = array_filter( array_merge( $entries_for_json, $locked_entries ) );
+				}
+			}
+
+			// append locked entries to the response if they exist
 			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );
 			if ( ! empty( $updated_entries ) ) {
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $updated_entries ) );
@@ -1079,7 +1114,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 					$use_rest_api = 1;
 				}
 
-				wp_enqueue_style( self::KEY . '-dash', plugins_url( 'assets/dashboard.css', __FILE__ ), [], self::VERSION, false );
+				wp_enqueue_style( self::KEY . '-dash', plugins_url( 'assets/dashboard.css', __DIR__ ), [], self::VERSION, false );
 
 				wp_localize_script(
 					'liveblog-admin',
@@ -1107,11 +1142,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				return;
 			}
 
-			wp_enqueue_style( self::KEY, plugins_url( 'assets/app.css', __FILE__ ), [], self::VERSION );
-			wp_enqueue_style( self::KEY . '_theme', plugins_url( 'assets/theme.css', __FILE__ ), [], self::VERSION );
+			wp_enqueue_style( self::KEY, plugins_url( 'assets/app.css', __DIR__ ), [], self::VERSION );
+			wp_enqueue_style( self::KEY . '_theme', plugins_url( 'assets/theme.css', __DIR__ ), [], self::VERSION );
 
 			// Load Client Scripts
-			wp_enqueue_script( self::KEY, plugins_url( 'assets/app.js', __FILE__ ), [], self::VERSION, true );
+			wp_enqueue_script( self::KEY, plugins_url( 'assets/app.js', __DIR__ ), [], self::VERSION, true );
 
 			if ( self::is_liveblog_editable() ) {
 				self::add_default_plupload_settings();
@@ -1145,7 +1180,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 					'liveblog_settings',
 					[
 						'permalink'                    => get_permalink(),
-						'plugin_dir'                   => plugin_dir_url( __FILE__ ),
+						'plugin_dir'                   => plugin_dir_url( __DIR__ ),
 						'post_id'                      => get_the_ID(),
 						'state'                        => self::get_liveblog_state(),
 						'is_liveblog_editable'         => self::is_liveblog_editable(),
@@ -1367,6 +1402,9 @@ if ( ! class_exists( 'Liveblog' ) ) :
 		 * @return string
 		 */
 		public static function add_liveblog_to_content( $content ) {
+			if ( 0 !== get_post()->post_parent ) {
+				return;
+			}
 
 			// We don't want to add the liveblog to other loops
 			// on the same page

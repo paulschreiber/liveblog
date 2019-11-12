@@ -210,13 +210,17 @@ class Liveblog_Webhook_API {
 
 		$headline = '';
 
-		//remove for pub
+		// Remove "for pub"
 		$content = preg_replace( apply_filters( 'liveblog_slack_ingest_regex', self::INGEST_REGEX ), '', $content );
 
+		// Appy user filters
 		$content = apply_filters( 'liveblog_slack_entry_content', $content );
 
-		//Parse markdown
+		// Parse markdown
 		$content = Liveblog_Markdown_Parser::render( trim( $content ) );
+
+		// Replace emoji names with characters
+		$content = Liveblog_Emoji_Parser::convert( $content );
 
 		$content = preg_replace_callback(
 			'/<\s*(http.*?)>/mi',
@@ -270,7 +274,7 @@ class Liveblog_Webhook_API {
 					}
 				} elseif ( $is_oembed ) {
 					// append new line to oembeds so that you can have back to back embed links
-					$link = $match[1] . PHP_EOL;
+					$link = PHP_EOL . $match[1] . PHP_EOL;
 				}
 
 				return $link;

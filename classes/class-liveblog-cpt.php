@@ -18,12 +18,13 @@ class Liveblog_CPT {
 	 * @return object|WP_Error
 	 */
 	public static function register_post_type() {
+		self::$cpt_slug = apply_filters( 'liveblog_cpt_slug', self::DEFAULT_CPT_SLUG );
 
 		add_action( 'before_delete_post', [ __CLASS__, 'delete_children' ] );
 		add_action( 'pre_get_posts', [ __CLASS__, 'filter_children_from_query' ] );
 		add_filter( 'parse_query', [ __CLASS__, 'hierarchical_posts_filter' ] );
-
-		self::$cpt_slug = apply_filters( 'liveblog_cpt_slug', self::DEFAULT_CPT_SLUG );
+		add_filter( 'post_type_link', [ __CLASS__, 'post_type_link' ], 10, 4 );
+		add_filter( self::$cpt_slug . '_rewrite_rules', [ __CLASS__, 'rewrite_rules' ] );
 
 		return register_post_type(
 			self::$cpt_slug,
@@ -117,6 +118,45 @@ class Liveblog_CPT {
 		}
 
 		return $query;
+	}
+
+	/**
+	 * Permalinks for child posts should use IDs, not slugs.
+	 *
+	 * @param string  $post_link The post's permalink.
+	 * @param WP_Post $post      The post in question.
+	 * @param bool    $leavename Whether to keep the post name.
+	 * @param bool    $sample    Is it a sample permalink.
+	 *
+	 * @return string
+	 */
+	public static function post_type_link( $post_link, $post, $leavename, $sample ) {
+		if ( self::$cpt_slug !== $post->post_type || 0 === $post->post_parent ) {
+			return $post_link;
+		}
+
+		return get_permalink( $post->post_parent ) . "$post->ID/";
+	}
+
+	/**
+	 * Modifies the rewrite rules for the live blog CPT.
+	 *
+	 * @param array $rules The Rules.
+	 *
+	 * @return array
+	 */
+	public static function rewrite_rules( $rules ) {
+
+		// Unset the broken rule.
+		unset( $rules['live-blog/(.+?)(?:/([0-9]+))?/?$'] );
+
+		// Matches live-blog/post-name/
+		$rules['live-blog/([^/]+)/?$'] = 'index.php?' .  self::$cpt_slug . '=$matches[1]';
+
+		// matches live-blog/post-name/12345/ -- where 12345 is a post ID from liveblog
+		$rules['live-blog/[^/]+/([0-9]+)/?$'] = 'index.php?post_type=' . self::$cpt_slug . '&p=$matches[1]';
+
+		return $rules;
 	}
 }
 
