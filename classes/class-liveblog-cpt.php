@@ -151,7 +151,7 @@ class Liveblog_CPT {
 		unset( $rules['live-blog/(.+?)(?:/([0-9]+))?/?$'] );
 
 		// Matches live-blog/post-name/
-		$rules['live-blog/([^/]+)/?$'] = 'index.php?' .  self::$cpt_slug . '=$matches[1]';
+		$rules['live-blog/([^/]+)/?$'] = 'index.php?' . self::$cpt_slug . '=$matches[1]';
 
 		// matches live-blog/post-name/12345/ -- where 12345 is a post ID from liveblog
 		$rules['live-blog/[^/]+/([0-9]+)/?$'] = 'index.php?post_type=' . self::$cpt_slug . '&p=$matches[1]';

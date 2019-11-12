@@ -190,8 +190,8 @@ class Liveblog_Entry {
 			'entry_time'        => $this->get_entry_date_gmt( 'U', $entry_id ),
 			'share_link'        => $share_link,
 			'status'            => self::get_status(),
- 			'locked'      => self::get_locked(),
-			'locked_user' => self::get_locked_by(),
+			'locked'            => self::get_locked(),
+			'locked_user'       => self::get_locked_by(),
 		];
 
 
@@ -706,7 +706,7 @@ class Liveblog_Entry {
 		}
 
 		$lock_time = apply_filters( 'wp_check_post_lock_window', 150 );
-		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', $lock_time );
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', $lock_time ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.LowCacheTime
 	}
 
 	/**
