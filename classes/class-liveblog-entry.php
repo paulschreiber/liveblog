@@ -706,7 +706,7 @@ class Liveblog_Entry {
 		}
 
 		$lock_time = apply_filters( 'wp_check_post_lock_window', 150 );
-		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', $lock_time );
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', $lock_time ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.LowCacheTime
 	}
 
 	/**
