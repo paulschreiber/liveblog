@@ -405,10 +405,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			$user = wp_get_current_user();
 
 			return [
-				'id'     => $user->ID,
-				'key'    => strtolower( $user->user_nicename ),
-				'name'   => $user->display_name,
-				'avatar' => self::get_avatar( $user->ID, 20 ),
+				'id'         => $user->ID,
+				'key'        => strtolower( $user->user_nicename ),
+				'name'       => $user->display_name,
+				'avatar'     => self::get_avatar( $user->ID, 20 ),
+				'can_unlock' => apply_filters( 'unlock_liveblog_entry_cap', current_user_can( 'manage_options' ) ),
 			];
 		}
 
@@ -551,7 +552,15 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $hidden_entries ) );
 			}
 
-			// append updated entries to the response if they exist
+			// append updated entries to the response if they exist. This should only be called from the admin
+			if ( self::current_user_can_edit_liveblog() ) {
+				$locked_entries = Liveblog_Entry::get_locked_entries( self::$post_id );
+				if ( ! empty( $locked_entries ) ) {
+					$entries_for_json = array_filter( array_merge( $entries_for_json, $locked_entries ) );
+				}
+			}
+
+			// append locked entries to the response if they exist
 			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );
 			if ( ! empty( $updated_entries ) ) {
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $updated_entries ) );

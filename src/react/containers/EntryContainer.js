@@ -29,11 +29,14 @@ class EntryContainer extends Component {
 
     this.isEditing = () => {
       const { user, entry } = this.props;
-      return user.entries[entry.id] && user.entries[entry.id].isEditing;
+      return user.entries[entry.id] && user.entries[entry.id].isEditing && !this.isLockedEntry();
     };
     this.edit = (event) => {
       event.preventDefault();
-      this.props.entryEditOpen(this.props.entry.id);
+      this.props.entryEditOpen({
+        entryId: this.props.entry.id,
+        config: this.props.config,
+      });
     };
     this.updateStatus = (status) => {
       const { entry, updateEntry } = this.props;
@@ -73,6 +76,14 @@ class EntryContainer extends Component {
     });
   }
 
+  isLockedEntry() {
+    const { locked } = this.props.entry;
+    const currentUser = parseInt(this.props.config.current_user.id, 10);
+    const lockedUser = parseInt(this.props.entry.locked_user.id, 10);
+    const isLocked = locked && lockedUser !== currentUser;
+    return isLocked;
+  }
+
   componentDidMount() {
     const { activateScrolling } = this.props.entry;
     triggerOembedLoad(this.node);
@@ -100,10 +111,11 @@ class EntryContainer extends Component {
   }
 
   entryActions() {
-    const { config, entry } = this.props;
+    const { entry, config } = this.props;
     const { status } = entry;
     const statusLabel = 'publish' === status ? 'Unpublish' : 'Publish';
     const newStatus = 'publish' === status ? 'draft' : 'publish';
+    const isLocked = this.isLockedEntry();
 
     if (!config.is_admin) {
       return false;
@@ -111,28 +123,36 @@ class EntryContainer extends Component {
 
     return (
       <footer className="liveblog-entry-tools">
-        <button
-          className="liveblog-btn liveblog-btn-small liveblog-btn-edit"
-          onClick={this.edit}
-          disabled={this.state.updating}
-        >
-          Edit
-        </button>
-        <button
-          className={`liveblog-btn liveblog-btn-small liveblog-btn-status ${newStatus}`}
-          onClick={ (event) => {
-            event.preventDefault();
-            this.updateStatus(newStatus);
-          } } key={entry.entry_time}
-          disabled={this.state.updating}>
-          {statusLabel}{this.state.updating ? '…' : ''}
-        </button>
-        <button
-          className="liveblog-btn liveblog-btn-small liveblog-btn-delete"
-          onClick={this.togglePopup.bind(this)}
-          disabled={this.state.updating}>
-          Delete
-        </button>
+        { isLocked && <div className="locked-info">
+          <span className="locked-avatar" dangerouslySetInnerHTML={{ __html: entry.locked_user.avatar }} />
+          <span className="locked-text">{entry.locked_user.name} is currently editing</span>
+        </div> }
+
+        <div className="liveblog-entry-actions">
+          { isLocked && <span className="dashicons dashicons-lock"></span> }
+          <button
+            className="liveblog-btn liveblog-btn-small liveblog-btn-edit"
+            onClick={this.edit}
+            disabled={this.state.updating || (isLocked && !config.current_user.can_unlock)}
+          >
+            Edit
+          </button>
+          <button
+            className={`liveblog-btn liveblog-btn-small liveblog-btn-status ${newStatus}`}
+            onClick={ (event) => {
+              event.preventDefault();
+              this.updateStatus(newStatus);
+            } } key={entry.entry_time}
+            disabled={this.state.updating || isLocked}>
+            {statusLabel}{this.state.updating ? '…' : ''}
+          </button>
+          <button
+            className="liveblog-btn liveblog-btn-small liveblog-btn-delete"
+            onClick={this.togglePopup.bind(this)}
+            disabled={this.state.updating || isLocked}>
+            Delete
+          </button>
+        </div>
       </footer>
     );
   }

@@ -82,5 +82,9 @@
 			"__TEST__": true
 		},
 		"verbose": true
-	}
+	},
+	"browserslist": [
+		"last 1 version",
+		"ie >= 11"
+	]
 }
