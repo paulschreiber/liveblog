@@ -107,7 +107,7 @@ export const api = (state = initialState, action) => {
       const id = `id_${entry.id}`;
       entries[id] = entry;
 
-      window.console.log(state);
+      window.console.log({ ...state });
 
       return {
         ...state,
