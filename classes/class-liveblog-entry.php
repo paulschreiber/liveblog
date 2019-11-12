@@ -84,6 +84,18 @@ class Liveblog_Entry {
 		return $this->type;
 	}
 
+	public function get_locked() {
+		return $this->locked ?? false;
+	}
+
+	public function get_locked_by() {
+		return $this->locked_user ?? 0;
+	}
+
+	public function set_type( $type ) {
+		$this->type = $type;
+	}
+
 	/**
 	 * Get the GMT timestamp for the entry
 	 *
@@ -165,6 +177,8 @@ class Liveblog_Entry {
 			'entry_time'  => $this->get_entry_date_gmt( 'U', $entry_id ),
 			'share_link'  => $share_link,
 			'status'      => self::get_status(),
+			'locked'      => self::get_locked(),
+			'locked_user' => self::get_locked_by(),
 		];
 
 
@@ -259,6 +273,9 @@ class Liveblog_Entry {
 		} else {
 			self::store_updated_entries( $entry_post, $entry_post->post_parent );
 		}
+
+		//Remove entry lock
+		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
 
 		$entry       = self::from_post( $entry_post );
 		$entry->type = 'update';
@@ -613,7 +630,6 @@ class Liveblog_Entry {
 			$updated_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 
-
 		wp_cache_set( $cached_key, $updated_entries, 'liveblog', 30 ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.LowCacheTime
 	}
 
@@ -651,6 +667,62 @@ class Liveblog_Entry {
 		}
 
 		return $entries;
+	}
+
+	/**
+	 * Add and remove entries from the lock entry cache
+	 *
+	 * @param      $entry_post
+	 * @param      $liveblog_id
+	 * @param bool $lock
+	 */
+	public static function toggle_entry_lock( $entry_post, $liveblog_id, $lock = false ) {
+		$cached_key = 'lock_entries_' . $liveblog_id;
+
+		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
+
+		if ( empty( $locked_entries ) || ! is_array( $locked_entries ) ) {
+			$locked_entries = [];
+		}
+
+		if ( ! $lock ) {
+			// add entry to updated entries cache to unlock it for othe editors
+			self::store_updated_entries( $entry_post, $liveblog_id );
+			unset( $locked_entries[ $entry_post->ID ] );
+		} else {
+			add_filter( 'liveblog_fetch_avatar_data', '__return_true' );
+			$user                              = wp_get_current_user();
+			$entry                             = self::from_post( $entry_post );
+			$entry->type                       = 'update';
+			$entry->locked                     = true;
+			$entry->locked_user                = [
+				'id'     => $user->ID,
+				'name'   => $user->display_name,
+				'avatar' => Liveblog::get_avatar( $user->ID, 18 ),
+			];
+			$locked_entries[ $entry_post->ID ] = $entry->for_json();
+		}
+
+		$lock_time = apply_filters( 'wp_check_post_lock_window', 150 );
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', $lock_time );
+	}
+
+	/**
+	 * Return a list of locked entries
+	 *
+	 * @param $liveblog_id
+	 *
+	 * @return array
+	 */
+	public function get_locked_entries( $liveblog_id ) {
+		$cached_key     = 'lock_entries_' . $liveblog_id;
+		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
+
+		if ( empty( $locked_entries ) ) {
+			return [];
+		}
+
+		return $locked_entries;
 	}
 }
 

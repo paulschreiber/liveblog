@@ -142,6 +142,7 @@ export function deleteEntry(id, config, nonce = false) {
       crud_action: 'delete',
       post_id: config.post_id,
       entry_id: id,
+      lock: id,
     },
     headers: {
       'Content-Type': 'application/json',
@@ -154,6 +155,24 @@ export function deleteEntry(id, config, nonce = false) {
   jQuery(document).trigger('liveblog-entry-deleted', [settings]);
 
   return secureAjax(settings);
+}
+
+export function lockEntry(entryId, lock, config, nonce = false) {
+  const settings = {
+    method: 'POST',
+    body: JSON.stringify({
+      post_id: config.post_id,
+      entry_id: entryId,
+      lock,
+    }),
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': nonce || config.nonce,
+      'cache-control': 'no-cache',
+    },
+  };
+
+  fetch(`${config.endpoint_url}lock/`, settings).then(() => {});
 }
 
 export function getEvents(config, newestEntry) {
