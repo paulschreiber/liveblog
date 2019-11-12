@@ -409,7 +409,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				'key'        => strtolower( $user->user_nicename ),
 				'name'       => $user->display_name,
 				'avatar'     => self::get_avatar( $user->ID, 20 ),
-				'can_unlock' => current_user_can( 'manage_options' ),
+				'can_unlock' => apply_filters( 'unlock_liveblog_entry_cap', current_user_can( 'manage_options' ) ),
 			];
 		}
 
