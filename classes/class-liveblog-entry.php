@@ -190,8 +190,8 @@ class Liveblog_Entry {
 			'entry_time'        => $this->get_entry_date_gmt( 'U', $entry_id ),
 			'share_link'        => $share_link,
 			'status'            => self::get_status(),
- 			'locked'      => self::get_locked(),
-			'locked_user' => self::get_locked_by(),
+			'locked'            => self::get_locked(),
+			'locked_user'       => self::get_locked_by(),
 		];
 
 
