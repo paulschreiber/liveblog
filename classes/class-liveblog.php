@@ -10,7 +10,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 	final class Liveblog {
 
 		/** Constants *************************************************************/
-		const VERSION                 = '1.9.74';
+		const VERSION                 = '1.9.75';
 		const REWRITES_VERSION        = 1;
 		const MIN_WP_VERSION          = '4.4';
 		const MIN_WP_REST_API_VERSION = '4.4';
@@ -1402,6 +1402,9 @@ if ( ! class_exists( 'Liveblog' ) ) :
 		 * @return string
 		 */
 		public static function add_liveblog_to_content( $content ) {
+			if ( 0 !== get_post()->post_parent ) {
+				return;
+			}
 
 			// We don't want to add the liveblog to other loops
 			// on the same page

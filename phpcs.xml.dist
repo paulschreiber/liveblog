@@ -10,6 +10,7 @@
 	<arg name="basepath" value="."/>
 	<arg name="parallel" value="50"/>
 	<arg name="extensions" value="php"/>
+	<arg name="severity" value="1"/>
 	<file>.</file>
 
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
