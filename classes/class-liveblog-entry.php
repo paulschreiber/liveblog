@@ -703,7 +703,8 @@ class Liveblog_Entry {
 			$locked_entries[ $entry_post->ID ] = $entry->for_json();
 		}
 
-		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', HOUR_IN_SECONDS );
+		$lock_time = apply_filters( 'wp_check_post_lock_window', 150 );
+		wp_cache_set( $cached_key, array_filter( $locked_entries ), 'liveblog', $lock_time );
 	}
 
 	/**
