@@ -107,10 +107,10 @@ export const api = (state = initialState, action) => {
       const id = `id_${entry.id}`;
 
       if (action.config.status !== entry.status) {
-        delete entries[id];
-      } else {
-        entries[id] = entry;
+        entry.type = 'delete';
       }
+      
+      entries[id] = entry;
 
       return {
         ...state,
