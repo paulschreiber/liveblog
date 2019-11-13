@@ -109,7 +109,7 @@ export const api = (state = initialState, action) => {
       if (action.config.status !== entry.status) {
         entry.type = 'delete';
       }
-      
+
       entries[id] = entry;
 
       return {
