@@ -161,7 +161,7 @@ class EntryContainer extends Component {
     const { entry } = this.props;
 
     return (
-      <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`} data-update-id={entry.id}>
+      <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`}>
         <button className="share-social share-facebook"></button>
         <button className="share-social share-twitter"></button>
       </div>
@@ -177,7 +177,7 @@ class EntryContainer extends Component {
       <article
         id={`id_${entry.id}`}
         ref={node => this.node = node}
-        className={`liveblog-entry ${entry.key_event ? 'is-key-event' : ''} ${entry.css_classes}`}
+        className={`${entry.key_event ? 'is-key-event ' : ''} ${entry.css_classes}`}
       >
         <div className="liveblog-entry-main">
           {this.state.showPopup ?

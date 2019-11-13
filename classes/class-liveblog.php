@@ -10,7 +10,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 	final class Liveblog {
 
 		/** Constants *************************************************************/
+<<<<<<< HEAD
 		const VERSION                 = '1.9.75';
+=======
+		const VERSION                 = '1.9.8';
+>>>>>>> master
 		const REWRITES_VERSION        = 1;
 		const MIN_WP_VERSION          = '4.4';
 		const MIN_WP_REST_API_VERSION = '4.4';
@@ -409,7 +413,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				'key'        => strtolower( $user->user_nicename ),
 				'name'       => $user->display_name,
 				'avatar'     => self::get_avatar( $user->ID, 20 ),
-				'can_unlock' => current_user_can( 'manage_options' ),
+				'can_unlock' => apply_filters( 'unlock_liveblog_entry_cap', current_user_can( 'manage_options' ) ),
 			];
 		}
 
@@ -1402,6 +1406,9 @@ if ( ! class_exists( 'Liveblog' ) ) :
 		 * @return string
 		 */
 		public static function add_liveblog_to_content( $content ) {
+			if ( 0 !== get_post()->post_parent ) {
+				return;
+			}
 
 			// We don't want to add the liveblog to other loops
 			// on the same page
