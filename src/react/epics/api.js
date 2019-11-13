@@ -105,7 +105,7 @@ const updateEntryEpic = (action$, store) =>
         .timeout(10000)
         .flatMap(res =>
           concat(
-            of(updateEntrySuccess(res.response)),
+            of(updateEntrySuccess(res.response, store.getState().config)),
             of(entryEditClose({
               entryId: res.response.entries[0].id,
               config: store.getState().api,

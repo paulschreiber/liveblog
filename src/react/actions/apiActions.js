@@ -80,9 +80,10 @@ export const updateEntry = payload => ({
   payload,
 });
 
-export const updateEntrySuccess = payload => ({
+export const updateEntrySuccess = (payload, config) => ({
   type: types.UPDATE_ENTRY_SUCCESS,
   payload,
+  config,
 });
 
 export const updateEntryFailed = message => ({
