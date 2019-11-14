@@ -93,14 +93,21 @@ AppContainer.propTypes = {
 const filterPollingEntries = (pollingEntries, config, entries) => {
   let newPollingEntries = Object.values(pollingEntries);
 
+  // Bail if you're in the admin.
+  // Just give us the entries.
   if (config.is_admin) {
     return Object.keys(pollingEntries);
   }
 
+  // Make array of IDs for entries that are loaded and ones that are loading
   const entryIds = Object.values(entries).map(entry => entry.id);
   const pollingEntryIds = newPollingEntries.map(entry => entry.id);
+
+  // Compare the IDs for any differences. We only care about those since those are actually new.
+  // The original polling entries object has a mix of old and new.
   const difference = pollingEntryIds.filter(x => !entryIds.includes(x));
 
+  // Get an array of entries that match the difference IDs so we return a complete set of data.
   newPollingEntries = newPollingEntries.filter(entry => difference.includes(entry.id));
 
   return newPollingEntries;
