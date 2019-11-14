@@ -221,7 +221,7 @@ class Liveblog_CPT {
 	public static function count_list_page( $counts, $type, $perm ) {
 		if ( is_admin() && is_post_type_archive( self::$cpt_slug ) ) {
 
-			$cache_key = _count_posts_cache_key( $type, $perm );
+			$cache_key = _count_posts_cache_key( $type, $perm ) . '-child';
 
 			$counts = wp_cache_get( $cache_key, 'counts' );
 			if ( false === $counts ) {
