@@ -7,7 +7,6 @@
  * Register and handle the "Live Blog" Custom Post Type
  */
 class Liveblog_CPT {
-
 	const DEFAULT_CPT_SLUG = 'liveblog';
 
 	public static $cpt_slug;
@@ -17,7 +16,7 @@ class Liveblog_CPT {
 	 *
 	 * @return object|WP_Error
 	 */
-	public static function register_post_type() {
+	public static function hooks() {
 		self::$cpt_slug = apply_filters( 'liveblog_cpt_slug', self::DEFAULT_CPT_SLUG );
 
 		add_action( 'before_delete_post', [ __CLASS__, 'delete_children' ] );
@@ -26,16 +25,9 @@ class Liveblog_CPT {
 		add_filter( 'post_type_link', [ __CLASS__, 'post_type_link' ], 10, 4 );
 		add_filter( self::$cpt_slug . '_rewrite_rules', [ __CLASS__, 'rewrite_rules' ] );
 
-		return register_post_type(
-			self::$cpt_slug,
-			[
-				'labels'    => [
-					'name'          => 'Live blogs',
-					'singular_name' => 'Live blog',
-				],
-				'menu_icon' => 'dashicons-admin-post',
-			]
-		);
+		// sort by date in table view, overriding hierarchical default sort
+		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
+		add_filter( 'pre_get_posts', [ __CLASS__, 'pre_get_posts' ] );
 	}
 
 	/**
@@ -158,6 +150,56 @@ class Liveblog_CPT {
 
 		return $rules;
 	}
+
+	/**
+	 * Register the Liveblog post type
+	 * @return object|WP_Error
+	 */
+	public static function register_post_type() {
+		return register_post_type(
+			self::$cpt_slug,
+			[
+				'labels'        => [
+					'name'               => _x( 'Live blog', 'post type name', 'liveblog' ),
+					'singular_name'      => _x( 'Live blog', 'post type name', 'liveblog' ),
+					'add_new_item'       => _x( 'Add New Live blog', 'add new post type', 'liveblog' ),
+					'edit_item'          => _x( 'Edit Live blog', 'edit_item post type', 'liveblog' ),
+					'new_item'           => _x( 'New Live blog', 'new_item post type', 'liveblog' ),
+					'view_item'          => _x( 'View Live blog', 'view_item post type', 'liveblog' ),
+					'search_items'       => _x( 'Search Live blogs', 'search_items post type', 'liveblog' ),
+					'not_found'          => _x( 'No Live blogs found', 'not_found post type', 'liveblog' ),
+					'not_found_in_trash' => _x( 'No Live blogs found in the trash', 'not_found_in_trash post type', 'liveblog' ),
+				],
+				'taxonomies'    => [ 'post_tag' ],
+				'public'        => true,
+				'show_in_rest'  => true,
+				'supports'      => [ 'title', 'editor', 'thumbnail', 'revisions', 'author', 'shortlinks', 'exclude_from_external_editors', 'page-attributes' ],
+				'hierarchical'  => true,
+				'has_archive'   => 'live-blog',
+				'menu_icon'     => 'dashicons-admin-post',
+				'menu_position' => 5,
+				'rewrite'       => [
+					'slug'       => 'live-blog',
+					'with_front' => 'false',
+				],
+			]
+		);
+	}
+
+	/**
+	 * Filter the query on list page to sort by date by default.
+	 * menu_order title/asc is the default sort for hierarchical items.
+	 *
+	 * @param WP_Query $query
+	 */
+	public static function pre_get_posts( $query ) {
+		if ( is_admin() && $query->is_main_query() && is_post_type_archive( self::$cpt_slug ) &&
+			'menu_order title' === $query->get( 'orderby' ) && 'asc' === $query->get( 'order' ) ) {
+			global $wpdb;
+			$query->set( 'orderby', $wpdb->posts );
+			$query->set( 'order', 'DESC' );
+		}
+	}
 }
 
-add_action( 'init', [ 'Liveblog_CPT', 'register_post_type' ] );
+add_action( 'after_setup_theme', [ 'Liveblog_CPT', 'hooks' ] );
