@@ -244,7 +244,7 @@ class Liveblog_CPT {
 
 				// need to include trash, auto-draft, inherit, request-pending, request-confirmed, request-failed and request-completed
 				// in the object. Otherwise you get undefined property errors.
-				foreach ( array_keys( get_post_stati( array( 'show_in_admin_all_list' => false ) ) ) as $item ) {
+				foreach ( array_keys( get_post_stati( [ 'show_in_admin_all_list' => false ] ) ) as $item ) {
 					if ( ! isset( $count_array[ $item ] ) ) {
 						$count_array[ $item ] = 0;
 					}
