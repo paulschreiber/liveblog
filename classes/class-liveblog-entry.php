@@ -279,6 +279,9 @@ class Liveblog_Entry {
 		// When an entry transitions from publish to draft we need to hide it on the front-end
 		self::toggle_entry_visibility( $entry_post, $entry_post->post_parent, $args['status'] );
 
+		//Remove entry lock
+		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
+
 		// Add update to cache if its not a new draft
 		if ( ! empty( $is_new_draft ) && 'publish' === $args['status'] ) {
 			delete_post_meta( $entry_post->ID, '_new_draft' );
@@ -286,9 +289,6 @@ class Liveblog_Entry {
 		} else {
 			self::store_updated_entries( $entry_post, $entry_post->post_parent );
 		}
-
-		//Remove entry lock
-		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
 
 		$entry       = self::from_post( $entry_post );
 		$entry->type = 'update';

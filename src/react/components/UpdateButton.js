@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const UpdateButton = ({ polling, click }) => {
+  // Button is only visible if the polling array has entry items.
+  // This will only have entries during loading.
   if (!polling.length > 0) return false;
 
   return (

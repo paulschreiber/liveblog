@@ -54,10 +54,15 @@ const mergePollingEpic = (action$, store) =>
       const entries = Object.keys(polling.entries).map(key => polling.entries[key]);
       const pages = Math.max(pagination.pages, polling.pages);
 
+      // The entries will be a mix of old and new entries.
+      // We need to get the first one that is new,
+      // but in reverse chron so the user starts with the first they haven't read.
+      const entryToScroll = entries.reverse().find(entry => 'new' === entry.type);
+
       if (pagination.page === 1 || config.paginationType === 'loadMore') {
         return concat(
           of(mergePollingIntoEntries(entries, pages)),
-          of(scrollToEntry(`id_${entries[entries.length - 1].id}`)),
+          of(scrollToEntry(`id_${entryToScroll.id}`)),
         );
       }
 
