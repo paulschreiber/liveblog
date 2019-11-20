@@ -276,8 +276,18 @@ class Liveblog_Entry {
 
 		$entry_post   = get_post( $updated_entry_id );
 		$is_new_draft = get_post_meta( $entry_post->ID, '_new_draft', true );
-		// When an entry transitions from publish to draft we need to hide it on the front-end
-		self::toggle_entry_visibility( $entry_post, $entry_post->post_parent, $args['status'] );
+
+		if ( isset( $args['filter_view'] ) && 'any' !== $args['filter_view'] ) {
+			// We have a view set, let's respect it.
+			$view   = $args['filter_view'];
+			$status = $args['status'];
+			if ( $view !== $status ) {
+				self::toggle_entry_visibility( $entry_post, $entry_post->post_parent, 'delete' );
+			}
+		} else {
+			// When an entry transitions from publish to draft we need to hide it on the front-end
+			self::toggle_entry_visibility( $entry_post, $entry_post->post_parent, $args['status'] );
+		}
 
 		//Remove entry lock
 		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
@@ -716,7 +726,7 @@ class Liveblog_Entry {
 	 *
 	 * @return array
 	 */
-	public function get_locked_entries( $liveblog_id ) {
+	public static function get_locked_entries( $liveblog_id ) {
 		$cached_key     = 'lock_entries_' . $liveblog_id;
 		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
 
