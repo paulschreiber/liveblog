@@ -105,12 +105,22 @@ export const api = (state = initialState, action) => {
       const entries = { ...state.entries };
       const entry = { ...action.payload.entries[0] };
       const id = `id_${entry.id}`;
+      let total = state.total;
       entries[id] = entry;
+
+      if ('any' !== action.config.status) {
+        if (entry.status === action.config.status) {
+          total += 1;
+        } else if (0 < total) {
+          total -= 1;
+        }
+      }
 
       return {
         ...state,
         error: false,
         entries,
+        total,
         nonce: action.payload.nonce,
       };
     }
