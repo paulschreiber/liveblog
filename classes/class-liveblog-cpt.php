@@ -31,6 +31,13 @@ class Liveblog_CPT {
 
 		// sort by date in table view, overriding hierarchical default sort
 		add_filter( 'pre_get_posts', [ __CLASS__, 'filter_list_page' ] );
+
+		// Hide Facebook Instant Articles status column on liveblog page
+		add_action( 'wp', function() {
+			if ( is_post_type_archive( self::$cpt_slug ) ) {
+				remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
+			}
+		});
 	}
 
 	/**
