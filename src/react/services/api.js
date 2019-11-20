@@ -120,6 +120,7 @@ export function updateEntry(entry, config, nonce = false) {
       author_ids: entry.authorIds,
       headline: entry.headline,
       status: entry.status,
+      filter_view: config.status,
     },
     headers: {
       'Content-Type': 'application/json',
