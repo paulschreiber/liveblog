@@ -114,14 +114,6 @@ export const api = (state = initialState, action) => {
         entries[id] = entry;
       }
 
-      if ('any' !== action.config.status) {
-        if (entry.status === action.config.status) {
-          total += 1;
-        } else if (0 < total) {
-          total -= 1;
-        }
-      }
-
       return {
         ...state,
         error: false,
