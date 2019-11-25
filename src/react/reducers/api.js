@@ -105,9 +105,11 @@ export const api = (state = initialState, action) => {
       const entries = { ...state.entries };
       const entry = { ...action.payload.entries[0] };
       const id = `id_${entry.id}`;
+      let total = state.total;
 
       if (action.config.status !== entry.status && 'any' !== action.config.status) {
         delete entries[id];
+        total -= 1;
       } else {
         entries[id] = entry;
       }
@@ -116,6 +118,7 @@ export const api = (state = initialState, action) => {
         ...state,
         error: false,
         entries,
+        total,
         nonce: action.payload.nonce,
       };
     }
