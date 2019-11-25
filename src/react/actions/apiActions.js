@@ -29,10 +29,11 @@ export const startPolling = payload => ({
   payload,
 });
 
-export const pollingSuccess = (payload, renderNewEntries) => ({
+export const pollingSuccess = (payload, renderNewEntries, config) => ({
   type: types.POLLING_SUCCESS,
   payload,
   renderNewEntries,
+  config,
 });
 
 export const pollingFailed = () => ({
