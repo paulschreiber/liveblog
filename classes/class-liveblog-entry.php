@@ -292,16 +292,24 @@ class Liveblog_Entry {
 		//Remove entry lock
 		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
 
+		$entry       = self::from_post( $entry_post );
+		$entry->type = 'update';
+
+		if ( isset( $args['filter_view'] ) && 'any' !== $args['filter_view'] ) {
+			// We have a view set, let's respect it.
+			if ( $args['filter_view'] !== $args['status'] ) {
+				$is_new_draft = true;
+				$entry->type = 'delete';
+			}
+		}
+
 		// Add update to cache if its not a new draft
-		if ( ! empty( $is_new_draft ) && 'publish' === $args['status'] ) {
+		if ( ( ! empty( $is_new_draft ) && 'publish' === $args['status'] ) ) {
 			delete_post_meta( $entry_post->ID, '_new_draft' );
 			self::store_updated_entries( $entry_post, $entry_post->post_parent, true );
 		} else {
 			self::store_updated_entries( $entry_post, $entry_post->post_parent );
 		}
-
-		$entry       = self::from_post( $entry_post );
-		$entry->type = 'update';
 
 		return $entry;
 	}
@@ -698,7 +706,7 @@ class Liveblog_Entry {
 		}
 
 		if ( ! $lock ) {
-			// add entry to updated entries cache to unlock it for othe editors
+			// add entry to updated entries cache to unlock it for other editors
 			self::store_updated_entries( $entry_post, $liveblog_id );
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {

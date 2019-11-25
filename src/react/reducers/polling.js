@@ -9,6 +9,7 @@ export const initialState = {
   newestEntry: false,
   entries: {},
   pages: 1,
+  total: 0,
 };
 
 export const polling = (state = initialState, action) => {
