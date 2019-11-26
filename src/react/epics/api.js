@@ -126,9 +126,9 @@ const deleteEntryEpic = (action$, store) =>
         .catch(error => of(deleteEntryFailed(error))),
     );
 
-const getEntriesAfterChangeEpic = action$ =>
+const getEntriesAfterChangeEpic = (action$, store) =>
   action$.ofType(types.CREATE_ENTRY_SUCCESS, types.UPDATE_ENTRY_SUCCESS, types.DELETE_ENTRY_SUCCESS)
-    .map(({ payload }) => pollingSuccess(payload, true));
+    .map(({ payload }) => pollingSuccess(payload, true, store.getState().config));
 
 export default combineEpics(
   getEntriesEpic,
