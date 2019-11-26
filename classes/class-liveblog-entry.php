@@ -716,7 +716,7 @@ class Liveblog_Entry {
 	 *
 	 * @return array
 	 */
-	public function get_locked_entries( $liveblog_id ) {
+	public static function get_locked_entries( $liveblog_id ) {
 		$cached_key     = 'lock_entries_' . $liveblog_id;
 		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
 
