@@ -9,7 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', (event) => {
-    const story = event.currentTarget.parentElement.parentElement;
+    if (!event.target.matches('.share-facebook')) {
+      return;
+    }
+
+    const story = event.target.parentElement.parentElement;
     const leftLocation = (screen.width / 2) - 300;
     const topLocation = (screen.height / 2) - 175;
     const options = `width=600,height=350,location=yes,status=yes,top=${topLocation}, left=${leftLocation}`;
@@ -19,14 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     event.preventDefault();
 
-    if (!event.target.matches('.share-facebook')) {
-      return;
-    }
-
     // individual story
     if (story.classList.contains('liveblog-entry-main')) {
       postLink = story.querySelector('.liveblog-meta-time').getAttribute('href');
-      postId = event.currentTarget.parentElement.getAttribute('id');
+      postId = event.target.parentElement.getAttribute('id');
 
     // overall page
     } else {
@@ -40,7 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('click', (event) => {
-    const story = event.currentTarget.parentElement.parentElement;
+    if (!event.target.matches('.share-twitter')) {
+      return;
+    }
+
+    const story = event.target.parentElement.parentElement;
     const leftLocation = (screen.width / 2) - 300;
     const topLocation = (screen.height / 2) - 175;
     const options = `width=600,height=350,location=yes,status=yes,top=${topLocation}, left=${leftLocation}`;
@@ -52,14 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     event.preventDefault();
 
-    if (!event.target.matches('.share-twitter')) {
-      return;
-    }
-
     // individual story
     if (story.classList.contains('liveblog-entry-main')) {
       postLink = story.querySelector('.liveblog-meta-time').getAttribute('href');
-      postId = event.currentTarget.parentElement.getAttribute('id');
+      postId = event.target.parentElement.getAttribute('id');
 
       header = story.querySelector('.liveblog-entry-header');
       if (header) {
