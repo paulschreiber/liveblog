@@ -302,7 +302,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				return $html;
 			}
 
-			$rest_route  = $GLOBALS['wp']->query_vars['rest_route'];
+			$rest_route  = $GLOBALS['wp']->query_vars['rest_route'] ?? '';
 			$is_liveblog = ( 0 === strpos( $rest_route, '/liveblog' ) );
 			if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || ! $is_liveblog ) {
 				return $html;
