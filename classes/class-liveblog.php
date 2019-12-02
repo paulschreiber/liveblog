@@ -213,6 +213,9 @@ if ( ! class_exists( 'Liveblog' ) ) :
 
 			// don't include child posts in search results
 			add_filter( 'jetpack_search_es_query_args', [ __CLASS__, 'jetpack_search_es_query_args' ], 10, 2 );
+
+			// remove JavaScript from Twitter embeds
+			add_filter( 'embed_oembed_html', [ __CLASS__, 'embed_oembed_html' ], 10, 4 );
 		}
 
 		/**
@@ -283,6 +286,31 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				];
 			}
 			return $args;
+		}
+
+		/**
+		 * Remove <script> tag from Twitter embeds.
+		 *
+		 * @param string $html           The original HTML returned from the external oembed/embed provider.
+		 * @param string $url            The URL found in the content.
+		 * @param mixed  $attr           An array with extra attributes.
+		 * @param int    $post_id        The post ID.
+		 * @return string The filtered HTML.
+		 */
+		public static function embed_oembed_html( $html, $url, $attr, $post_id ) {
+			if ( 0 !== strpos( $url, 'https://twitter.com' ) ) {
+				return $html;
+			}
+
+			$rest_route  = $GLOBALS['wp']->query_vars['rest_route'] ?? '';
+			$is_liveblog = ( 0 === strpos( $rest_route, '/liveblog' ) );
+			if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || ! $is_liveblog ) {
+				return $html;
+			}
+
+			$html = str_replace( '<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>', '', $html ); // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+			return $html;
 		}
 
 		/**
