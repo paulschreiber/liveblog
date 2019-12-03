@@ -62,10 +62,11 @@ export const api = (state = initialState, action) => {
       // Set entry type to delete if current view(status) does not match the new view.
       if (action.payload.entries.length && validStatuses.includes(currentView)) {
         action.payload.entries.map((entry) => {
-          if (entry.status !== currentView) {
-            entry.type = 'delete';
+          const e = entry;
+          if (e.status !== currentView) {
+            e.type = 'delete';
           }
-          return entry;
+          return e;
         });
       }
 
