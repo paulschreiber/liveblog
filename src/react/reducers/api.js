@@ -50,18 +50,37 @@ export const api = (state = initialState, action) => {
         error: true,
       };
 
-    case 'POLLING_SUCCESS':
+    case 'POLLING_SUCCESS': {
+      const validStatuses = ['publish', 'draft'];
+      const currentView = action.config.status;
+      // let total = action.payload.entries.length;
+
       if (action.payload.entries && action.payload.entries.length !== 0) {
         jQuery(document).trigger('liveblog-post-update', [action.payload]);
       }
+
+      // Set entry type to delete if current view(status) does not match the new view.
+      if (action.payload.entries.length && validStatuses.includes(currentView)) {
+        action.payload.entries.map((entry) => {
+          const e = entry;
+          if (e.status !== currentView) {
+            e.type = 'delete';
+          }
+          return e;
+        });
+      }
+
+      // Apply updates prior to return.
+      const entries = pollingApplyUpdate(
+        state.entries,
+        action.payload.entries,
+        action.renderNewEntries,
+      );
+
       return {
         ...state,
         error: false,
-        entries: pollingApplyUpdate(
-          state.entries,
-          action.payload.entries,
-          action.renderNewEntries,
-        ),
+        entries,
         newestEntry: action.renderNewEntries
           ? getNewestEntry(
             state.newestEntry,
@@ -71,6 +90,7 @@ export const api = (state = initialState, action) => {
           : state.newestEntry,
         total: action.payload.total ? action.payload.total : state.total,
       };
+    }
 
     case 'CREATE_ENTRY_SUCCESS':
       return {
@@ -105,12 +125,20 @@ export const api = (state = initialState, action) => {
       const entries = { ...state.entries };
       const entry = { ...action.payload.entries[0] };
       const id = `id_${entry.id}`;
-      entries[id] = entry;
+      let total = state.total;
+
+      if (action.config.status !== entry.status && 'any' !== action.config.status) {
+        delete entries[id];
+        total -= 1;
+      } else {
+        entries[id] = entry;
+      }
 
       return {
         ...state,
         error: false,
         entries,
+        total,
         nonce: action.payload.nonce,
       };
     }

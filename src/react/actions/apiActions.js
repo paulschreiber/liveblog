@@ -29,10 +29,11 @@ export const startPolling = payload => ({
   payload,
 });
 
-export const pollingSuccess = (payload, renderNewEntries) => ({
+export const pollingSuccess = (payload, renderNewEntries, config) => ({
   type: types.POLLING_SUCCESS,
   payload,
   renderNewEntries,
+  config,
 });
 
 export const pollingFailed = () => ({
@@ -80,9 +81,10 @@ export const updateEntry = payload => ({
   payload,
 });
 
-export const updateEntrySuccess = payload => ({
+export const updateEntrySuccess = (payload, config) => ({
   type: types.UPDATE_ENTRY_SUCCESS,
   payload,
+  config,
 });
 
 export const updateEntryFailed = message => ({
