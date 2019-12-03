@@ -53,7 +53,7 @@ export const api = (state = initialState, action) => {
     case 'POLLING_SUCCESS': {
       const validStatuses = ['publish', 'draft'];
       const currentView = action.config.status;
-      let total = action.payload.entries.length;
+      // let total = action.payload.entries.length;
 
       if (action.payload.entries && action.payload.entries.length !== 0) {
         jQuery(document).trigger('liveblog-post-update', [action.payload]);
@@ -62,10 +62,11 @@ export const api = (state = initialState, action) => {
       // Set entry type to delete if current view(status) does not match the new view.
       if (action.payload.entries.length && validStatuses.includes(currentView)) {
         action.payload.entries.map((entry) => {
-          if (entry.status !== currentView) {
-            entry.type = 'delete';
+          const e = entry;
+          if (e.status !== currentView) {
+            e.type = 'delete';
           }
-          return entry;
+          return e;
         });
       }
 
@@ -75,17 +76,6 @@ export const api = (state = initialState, action) => {
         action.payload.entries,
         action.renderNewEntries,
       );
-
-      // Bulid the total based on statuses.
-      total = Object.values(entries).filter((entry) => {
-        if (validStatuses.includes(currentView) && entry.type !== 'delete') {
-          return true;
-        } else if (entry.type !== 'delete') {
-          return true;
-        }
-
-        return false;
-      }).length;
 
       return {
         ...state,
@@ -98,7 +88,7 @@ export const api = (state = initialState, action) => {
             state.entries,
           )
           : state.newestEntry,
-        total,
+        total: action.payload.total ? action.payload.total : state.total,
       };
     }
 
