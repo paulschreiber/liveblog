@@ -77,17 +77,6 @@ export const api = (state = initialState, action) => {
         action.renderNewEntries,
       );
 
-      // Bulid the total based on statuses.
-      // total = Object.values(entries).filter((entry) => {
-      //   if (validStatuses.includes(currentView) && entry.type !== 'delete') {
-      //     return true;
-      //   } else if (entry.type !== 'delete') {
-      //     return true;
-      //   }
-
-      //   return false;
-      // }).length;
-
       return {
         ...state,
         error: false,
