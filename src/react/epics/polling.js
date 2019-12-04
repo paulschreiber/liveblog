@@ -41,6 +41,7 @@ const startPollingEpic = (action$, store) =>
                   store.getState().api.entries,
                   store.getState().polling.entries,
                 ),
+                store.getState().config,
               ),
             )
             .catch(error => of(pollingFailed(error))),

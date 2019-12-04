@@ -421,12 +421,13 @@ class Liveblog_Rest_Api {
 		$json        = $request->get_json_params();
 
 		$args = [
-			'post_id'    => self::get_json_param( 'post_id', $json ),
-			'content'    => self::get_json_param( 'content', $json ),
-			'entry_id'   => self::get_json_param( 'entry_id', $json ),
-			'author_ids' => self::get_json_param( 'author_ids', $json ),
-			'headline'   => self::get_json_param( 'headline', $json ),
-			'status'     => self::get_json_param( 'status', $json ),
+			'post_id'     => self::get_json_param( 'post_id', $json ),
+			'content'     => self::get_json_param( 'content', $json ),
+			'entry_id'    => self::get_json_param( 'entry_id', $json ),
+			'author_ids'  => self::get_json_param( 'author_ids', $json ),
+			'headline'    => self::get_json_param( 'headline', $json ),
+			'status'      => self::get_json_param( 'status', $json ),
+			'filter_view' => self::get_json_param( 'filter_view', $json ),
 		];
 
 		self::set_liveblog_vars( $args['post_id'] );
