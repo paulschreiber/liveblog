@@ -570,12 +570,6 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			$flattened   = false;
 			$total       = false;
 
-			// append locked entries to the response if they exist
-			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );
-			if ( ! empty( $updated_entries ) ) {
-				$entries_for_json = array_filter( array_merge( $entries_for_json, $updated_entries ) );
-			}
-
 			/**
 			 * Append hidden entries to the response if they exist. Depending on if your making the request from that WordPress admin
 			 * or the front-end. Hidden entries will be composed of entries that have transitioned to draft for have been deleted. We
@@ -586,12 +580,18 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $hidden_entries ) );
 			}
 
-			// append updated entries to the response if they exist. This should only be called from the admin
+			// append locked entries to the response if they exist
 			if ( self::current_user_can_edit_liveblog() ) {
 				$locked_entries = Liveblog_Entry::get_locked_entries( self::$post_id );
 				if ( ! empty( $locked_entries ) ) {
 					$entries_for_json = array_filter( array_merge( $entries_for_json, $locked_entries ) );
 				}
+			}
+
+			// append updated entries to the response if they exist. This should only be called from the admin
+			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );
+			if ( ! empty( $updated_entries ) ) {
+				$entries_for_json = array_filter( array_merge( $entries_for_json, $updated_entries ) );
 			}
 
 			if ( ! empty( $entries ) ) {
@@ -614,11 +614,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 						$entries_for_json[ $key ] = $entry->for_json();
 					}
 				}
-
-				$flattened = self::flatten_entries( $all_entries );
-				$total     = count( $flattened );
-				$pages     = ceil( $total / $per_page );
 			}
+
+			$flattened = self::flatten_entries( $all_entries );
+			$total     = count( $flattened );
+			$pages     = ceil( $total / $per_page );
 
 			// Create the result array
 			$result = [
