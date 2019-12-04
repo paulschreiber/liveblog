@@ -180,7 +180,7 @@ class Liveblog_Entry {
 
 		$share_description = $headline ? $headline : $rendered_content;
 		$share_description = wp_strip_all_tags( $share_description );
-		if ( count( $share_description ) > 140 ) {
+		if ( $share_description && strlen( $share_description ) > 140 ) {
 			$share_description = substr( $share_description, 0, 140 ) . '…';
 		}
 
