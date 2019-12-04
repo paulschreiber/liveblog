@@ -21,10 +21,10 @@ const EntryShare = ({ entry }) => {
   return (
     <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`}>
       <a onClick={openFbShare} target="_blank" rel="noopener noreferrer" href={fbShareUrl} className="share-social share-facebook">
-        <span className="screen-reader-text">Share on Facebook</span>
+        <span className="screen-reader-text">Share {entry.share_description} on Facebook</span>
       </a>
       <a onClick={openTwitterShare} target="_blank" rel="noopener noreferrer" href={twitterShareUrl} className="share-social share-twitter">
-        <span className="screen-reader-text">Share on Twitter</span>
+        <span className="screen-reader-text">Share {entry.share_description} on Twitter</span>
       </a>
     </div>
   );
