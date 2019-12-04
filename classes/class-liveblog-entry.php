@@ -174,21 +174,29 @@ class Liveblog_Entry {
 			return false;
 		}
 
-		$css_classes = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
-		$share_link  = get_permalink( $entry_id );
+		$css_classes      = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
+		$headline         = $this->get_headline();
+		$rendered_content = self::render_content( $this->get_content(), $this->entry );
+
+		$share_description = $headline ? $headline : $rendered_content;
+		$share_description = wp_strip_all_tags( $share_description );
+		if ( $share_description && strlen( $share_description ) > 140 ) {
+			$share_description = substr( $share_description, 0, 140 ) . '…';
+		}
 
 		$entry = [
 			'id'                => $entry_id,
 			'type'              => $this->get_type(),
-			'render'            => self::render_content( $this->get_content(), $this->entry ),
-			'headline'          => $this->get_headline(),
+			'render'            => $rendered_content,
+			'headline'          => $headline,
 			'content'           => apply_filters( 'liveblog_before_edit_entry', $this->get_content() ),
 			'css_classes'       => $css_classes,
 			'timestamp'         => $this->get_timestamp(),
 			'updated_timestamp' => $this->get_updated_timestamp(),
 			'authors'           => self::get_authors( $entry_id ),
 			'entry_time'        => $this->get_entry_date_gmt( 'U', $entry_id ),
-			'share_link'        => $share_link,
+			'share_link'        => get_permalink( $entry_id ),
+			'share_description' => $share_description,
 			'status'            => self::get_status(),
 			'locked'            => self::get_locked(),
 			'locked_user'       => self::get_locked_by(),

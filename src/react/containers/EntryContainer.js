@@ -8,6 +8,7 @@ import * as userActions from '../actions/userActions';
 import { triggerOembedLoad, formattedTime } from '../utils/utils';
 import Editor from '../components/Editor';
 import DeleteConfirmation from '../components/DeleteConfirmation';
+import EntryShare from '../components/EntryShare';
 
 const authorLink = (author) => {
   let result = '';
@@ -157,17 +158,6 @@ class EntryContainer extends Component {
     );
   }
 
-  entryShare() {
-    const { entry } = this.props;
-
-    return (
-      <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`}>
-        <button className="share-social share-facebook"></button>
-        <button className="share-social share-twitter"></button>
-      </div>
-    );
-  }
-
   render() {
     const { entry, config } = this.props;
 
@@ -242,7 +232,7 @@ class EntryContainer extends Component {
               )
           }
           {!this.isEditing() && this.entryActions()}
-          {this.entryShare()}
+          <EntryShare entry={entry} />
         </div>
       </article>
     );
