@@ -15,7 +15,11 @@ const EntryShare = ({ entry }) => {
 
   const openTwitterShare = (event) => {
     event.preventDefault();
-    window.open(twitterShareUrl, entry.id, options);
+    // twitter's widgets.js will automatically bind onClick handlers to any links to twitter.com
+    // only attach our on handler twitter JS is not present
+    if ('undefined' === typeof window.twttr) {
+      window.open(twitterShareUrl, entry.id, options);
+    }
   };
 
   return (
