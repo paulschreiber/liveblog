@@ -1170,11 +1170,21 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				return;
 			}
 
+			$current_post    = get_post();
+			$is_single_entry = is_object( $current_post) && 0 !== $current_post->post_parent;
+			if ( $is_single_entry ) {
+				wp_dequeue_script( 'luxon' );
+				return;
+			}
+
 			wp_enqueue_style( self::KEY, plugins_url( 'assets/app.css', __DIR__ ), [], self::VERSION );
 			wp_enqueue_style( self::KEY . '_theme', plugins_url( 'assets/theme.css', __DIR__ ), [], self::VERSION );
 
 			// Load Client Scripts
 			wp_enqueue_script( self::KEY, plugins_url( 'assets/app.js', __DIR__ ), [], self::VERSION, true );
+
+			// social sharing
+			wp_enqueue_script( self::KEY . '_social', plugins_url( 'assets/social.js', __DIR__ ), [], self::VERSION, false );
 
 			if ( self::is_liveblog_editable() ) {
 				self::add_default_plupload_settings();
