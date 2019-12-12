@@ -331,7 +331,6 @@ class EditorContainer extends Component {
           optionComponent={AuthorSelectOption}
           loadOptions={this.getUsers}
           clearable={false}
-          cache={false}
         />
 
         { !isEditing && <button
