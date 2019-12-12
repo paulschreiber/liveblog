@@ -237,15 +237,35 @@ class Liveblog_AMP {
 		} else {
 			$entries = Liveblog::get_entries_paged( $request->page, $request->last );
 			$request = self::set_request_last_from_entries( $entries, $request );
-			//Updated hidden entries to deleted
 
+			// Key entries by ID so they can be overwritten.
+			if ( ! empty ( $entries['entries'] ) ) {
+				$e = [];
+				foreach ( $entries['entries'] as $entry ) {
+					$e[ 'entry_' . $entry->id ] = $entry;
+				}
+				$entries['entries'] = $e;
+			}
+
+			//Updated hidden entries to deleted
 			$hidden_entries = Liveblog_Entry::get_hidden_entries( $post->ID, false );
 			if ( $hidden_entries ) {
 				foreach ( $hidden_entries as $entry ) {
 					if ( is_null( $entry->entry_time ) ) {
 						$entry->entry_time = $entry->timestamp;
 					}
-					$entries['entries'][] = $entry;
+					$entries['entries'][ 'entry_' . $entry->id ] = $entry;
+				}
+			}
+
+			$updated_entries = Liveblog_Entry::get_updated_entries( $post->ID, true );
+			if ( $updated_entries ) {
+				foreach ( $updated_entries as $entry ) {
+					if ( is_null( $entry->entry_time ) ) {
+						$entry->entry_time = $entry->timestamp;
+					}
+
+					$entries['entries'][ 'entry_' . $entry->id ] = $entry;
 				}
 			}
 
