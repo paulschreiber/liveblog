@@ -94,7 +94,7 @@ class EntryContainer extends Component {
 
     // Listen for a tab close and remove the lock.
     window.addEventListener('beforeunload', () => {
-      if (this.isLockedEntry) {
+      if (this.isEditing) {
         this.props.entryEditClose({
           entryId: this.props.entry.id,
           config: this.props.config,
