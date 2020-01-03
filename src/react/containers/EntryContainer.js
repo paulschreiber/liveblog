@@ -91,6 +91,16 @@ class EntryContainer extends Component {
     if (activateScrolling) {
       this.scrollIntoView();
     }
+
+    // Listen for a tab close and remove the lock.
+    window.addEventListener('beforeunload', () => {
+      if (this.isLockedEntry) {
+        this.props.entryEditClose({
+          entryId: this.props.entry.id,
+          config: this.props.config,
+        });
+      }
+    });
   }
 
   componentDidUpdate(prevProps) {
@@ -244,6 +254,7 @@ EntryContainer.propTypes = {
   config: PropTypes.object,
   entry: PropTypes.object,
   entryEditOpen: PropTypes.func,
+  entryEditClose: PropTypes.func,
   updateEntry: PropTypes.func,
   deleteEntry: PropTypes.func,
   activateScrolling: PropTypes.bool,
