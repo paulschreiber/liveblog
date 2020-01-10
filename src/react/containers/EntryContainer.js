@@ -134,7 +134,7 @@ class EntryContainer extends Component {
 
     return (
       <footer className="liveblog-entry-tools">
-        { isLocked && <div className="locked-info">
+        { isLocked && <div className="liveblog-locked-info">
           <span className="locked-avatar" dangerouslySetInnerHTML={{ __html: entry.locked_user.avatar }} />
           <span className="locked-text">{entry.locked_user.name} is currently editing</span>
         </div> }
