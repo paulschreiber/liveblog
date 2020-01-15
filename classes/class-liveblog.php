@@ -1183,9 +1183,6 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			// Load Client Scripts
 			wp_enqueue_script( self::KEY, plugins_url( 'assets/app.js', __DIR__ ), [], self::VERSION, true );
 
-			// social sharing
-			wp_enqueue_script( self::KEY . '_social', plugins_url( 'assets/social.js', __DIR__ ), [], self::VERSION, false );
-
 			if ( self::is_liveblog_editable() ) {
 				self::add_default_plupload_settings();
 			}
