@@ -670,11 +670,11 @@ class Liveblog_Entry {
 			}
 
 			if ( ! empty( $selected_status ) && $selected_status === $entry->status ) {
-				$entries[] = $entry;
+				$entries[ $entry_id ] = $entry;
 			} elseif ( empty( $selected_status ) ) {
-				$entries[] = $entry;
+				$entries[ $entry_id ] = $entry;
 			} elseif ( ! empty( $selected_status ) && Liveblog::current_user_can_edit_liveblog() ) {
-				$entries[] = $entry;
+				$entries[ $entry_id ] = $entry;
 			}
 		}
 
