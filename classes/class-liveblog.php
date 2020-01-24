@@ -594,6 +594,10 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				$entries_for_json = array_filter( array_replace( $entries_for_json, $updated_entries ) );
 			}
 
+			if ( ! empty( $entries_for_json ) ) {
+				$entries_for_json = array_values( $entries_for_json );
+			}
+
 			if ( ! empty( $entries ) ) {
 				// Get entry ids to used for removing existing entries from the list
 				$entry_ids = array_map( 'absint', wp_list_pluck( $entries_for_json, 'id' ) );
