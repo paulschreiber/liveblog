@@ -577,21 +577,25 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			 */
 			$hidden_entries = Liveblog_Entry::get_hidden_entries( self::$post_id, self::current_user_can_edit_liveblog() );
 			if ( ! empty( $hidden_entries ) ) {
-				$entries_for_json = array_filter( array_merge( $entries_for_json, $hidden_entries ) );
+				$entries_for_json = array_filter( array_replace( $entries_for_json, $hidden_entries ) );
 			}
 
 			// append locked entries to the response if they exist
 			if ( self::current_user_can_edit_liveblog() ) {
 				$locked_entries = Liveblog_Entry::get_locked_entries( self::$post_id );
 				if ( ! empty( $locked_entries ) ) {
-					$entries_for_json = array_filter( array_merge( $entries_for_json, $locked_entries ) );
+					$entries_for_json = array_filter( array_replace( $entries_for_json, $locked_entries ) );
 				}
 			}
 
 			// append updated entries to the response if they exist. This should only be called from the admin
 			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );
 			if ( ! empty( $updated_entries ) ) {
-				$entries_for_json = array_filter( array_merge( $entries_for_json, $updated_entries ) );
+				$entries_for_json = array_filter( array_replace( $entries_for_json, $updated_entries ) );
+			}
+
+			if ( ! empty( $entries_for_json ) ) {
+				$entries_for_json = array_values( $entries_for_json );
 			}
 
 			if ( ! empty( $entries ) ) {
