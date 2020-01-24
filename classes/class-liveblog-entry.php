@@ -583,6 +583,10 @@ class Liveblog_Entry {
 			unset( $hidden_entries[ $entry_post->ID ] );
 		}
 
+		if ( 'delete' === $status ) {
+			self::store_updated_entries( $entry_post, $liveblog_id, true );
+		}
+
 		wp_cache_set( $cached_key, array_filter( $hidden_entries ), 'liveblog', 30 ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.LowCacheTime
 	}
 
@@ -611,7 +615,7 @@ class Liveblog_Entry {
 				continue;
 			}
 
-			$entries[] = $entry;
+			$entries[ $entry_id ] = $entry;
 		}
 
 		return $entries;
