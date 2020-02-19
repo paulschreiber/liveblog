@@ -2,12 +2,14 @@
 
 class Liveblog_Webhook_API {
 
-	const EVENT_ENDPOINT  = 'v1/slack';
-	const CACHE_KEY       = 'liveblog';
-	const CACHE_GROUP     = 'slack';
-	const MESSAGE_ID_META = 'client_msg_id';
-	const ASYNC_TASK      = 'slack_process_entry';
-	const INGEST_REGEX    = '/^FOR PUB:/mi';
+	const EVENT_ENDPOINT   = 'v1/slack';
+	const CACHE_KEY        = 'liveblog';
+	const CACHE_GROUP      = 'slack';
+	const MESSAGE_ID_META  = 'client_msg_id';
+	const MESSAGE_TTS_META = 'thread_ts';
+	const MESSAGE_TS_META  = 'ts';
+	const ASYNC_TASK       = 'slack_process_entry';
+	const INGEST_REGEX     = '/^FOR PUB:/mi';
 
 	/**
 	 * Register Hooks
@@ -115,6 +117,26 @@ class Liveblog_Webhook_API {
 	}
 
 	/**
+	 * Gets a post by it's timestamp string from the slack API.
+	 *
+	 * @param string $ts The ts or thread_ts string from the slack API.
+	 *
+	 * @return bool|mixed
+	 */
+	public static function get_post_by_ts( $ts ) {
+		global $wpdb;
+		$cached = wp_cache_get( $ts, 'slack_threads' );
+		if ( false === $cached ) {
+			$db_query = $wpdb->prepare( "select post_id from {$wpdb->postmeta} where meta_key = %s and meta_value = %s limit 1", self::MESSAGE_TS_META, sanitize_text_field( $ts ) );
+			$cached   = $wpdb->get_var( $db_query ); // phpcs:ignore
+
+			wp_cache_set( $ts, $cached, 'slack_threads', 3 * HOUR_IN_SECONDS );
+		}
+
+		return $cached;
+	}
+
+	/**
 	 * Process cron event to ingest slack message
 	 *
 	 * @param $raw_body
@@ -180,6 +202,12 @@ class Liveblog_Webhook_API {
 		} elseif ( false === $liveblog_entry && property_exists( $body->event, 'text' ) ) {
 			$original_text = $body->event->text;
 			$entry_data    = self::sanitize_entry( $original_text, $liveblog, $body->event->files ?? [] );
+			if ( isset( $body->event->thread_ts ) ) {
+				$parent_entry = self::get_post_by_ts( $body->event->thread_ts );
+				if ( ! empty( $parent_entry ) ) {
+
+				}
+			}
 
 			$entry = Liveblog_Entry::insert(
 				[
@@ -188,11 +216,21 @@ class Liveblog_Webhook_API {
 					'content'    => $entry_data['content'],
 					'author_ids' => apply_filters( 'liveblog_slack_authors', [ $user ], $original_text ),
 					'user'       => $liveblog_author,
+					'thread_ts'  => isset( $body->event->thread_ts ) ? esc_attr( $body->event->thread_ts) : null,
 				]
 			);
 
 			if ( ! is_wp_error( $entry ) ) {
 				update_post_meta( $entry->get_id(), self::MESSAGE_ID_META, sanitize_text_field( $body->event->client_msg_id ) );
+
+				if ( isset( $body->event->thread_ts ) ) {
+					update_post_meta( $entry->get_id(), self::MESSAGE_TTS_META, sanitize_text_field( $body->event->thread_ts ) );
+				}
+
+				// TODO: Verify that edits do not change the timestamp.
+				if ( ! $is_edit ) {
+					update_post_meta( $entry->get_id(), self::MESSAGE_TS_META, sanitize_text_field( $body->event->ts ) );
+				}
 			}
 		}
 	}
