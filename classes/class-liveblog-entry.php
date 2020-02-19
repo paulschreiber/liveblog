@@ -381,7 +381,49 @@ class Liveblog_Entry {
 			update_post_meta( $entry->ID, '_new_draft', current_time( 'timestamp' ) );
 		}
 
+		if ( ! empty( $args['parent_thread'] ) ) {
+			// We have a threaded reply, so we'll need to update the parent.
+			self::insert_threaded_entry( $entry, $args );
+		}
+
 		return $entry;
+	}
+
+	/**
+	 * Gets the formatted shortcode for an entry.
+	 *
+	 * @param int|WP_Post $entry The entry to create a shortcode for.
+	 *
+	 * @return string
+	 */
+	private static function get_entry_shortcode( $entry ) {
+		$post = get_post( $entry );
+
+		if ( ! $post ) {
+			return '';
+		}
+
+		// TODO: Very minimal setup for entry IDs for now.
+		return "[liveblog_entry id='{$entry->ID}']";
+	}
+
+	/**
+	 * Inserts a threaded reply into the parent entry as a shortcode.
+	 *
+	 * @param WP_Post $entry The entry object.
+	 * @param array $args The original arguments.
+	 */
+	private static function insert_threaded_entry( $entry, $args ) {
+		if ( empty( $args['parent_thread'] ) ) {
+			return;
+		}
+
+		$parent_post = get_post( $args['parent_thread'] );
+		if ( ! $parent_post ) {
+			return;
+		}
+
+		$shortcode = self::get_entry_shortcode( $entry );
 	}
 
 	private static function validate_args( $args, $content_required = true ) {
