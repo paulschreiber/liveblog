@@ -119,18 +119,28 @@ class Liveblog_Webhook_API {
 	/**
 	 * Gets a post by it's timestamp string from the slack API.
 	 *
-	 * @param string $ts The ts or thread_ts string from the slack API.
+	 * @param string $thread_ts The thread_ts string from the slack API.
+	 * @param string $channel The slack channel to check as well.
 	 *
 	 * @return bool|mixed
 	 */
-	public static function get_post_by_ts( $ts ) {
+	public static function get_post_by_ts( $thread_ts, $channel ) {
 		global $wpdb;
-		$cached = wp_cache_get( $ts, 'slack_threads' );
+
+		// Some basic sanitization prior to usage.
+		$thread_ts = sanitize_text_field( $thread_ts );
+		$channel   = sanitize_text_field( $channel );
+
+		// Creates a unique key based on channel and microsecond time.
+		$cache_key = $thread_ts . '-' . $channel;
+
+		$cached = wp_cache_get( $cache_key, 'slack_threads' );
 		if ( false === $cached ) {
-			$db_query = $wpdb->prepare( "select post_id from {$wpdb->postmeta} where meta_key = %s and meta_value = %s limit 1", self::MESSAGE_TS_META, sanitize_text_field( $ts ) );
+			$db_query = $wpdb->prepare( "select post_id from {$wpdb->postmeta} where meta_key = %s and meta_value = %s limit 1", self::MESSAGE_TS_META, $thread_ts );
 			$cached   = $wpdb->get_var( $db_query ); // phpcs:ignore
 
-			wp_cache_set( $ts, $cached, 'slack_threads', 3 * HOUR_IN_SECONDS );
+			// We should only need to get this once during a live blog, 3 hours seems like enough time.
+			wp_cache_set( $cache_key, $cached, 'slack_threads', 3 * HOUR_IN_SECONDS );
 		}
 
 		return $cached;
@@ -203,7 +213,7 @@ class Liveblog_Webhook_API {
 			$original_text = $body->event->text;
 			$entry_data    = self::sanitize_entry( $original_text, $liveblog, $body->event->files ?? [] );
 			if ( isset( $body->event->thread_ts ) ) {
-				$parent_entry = self::get_post_by_ts( $body->event->thread_ts );
+				$parent_entry = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel );
 				if ( ! empty( $parent_entry ) ) {
 
 				}
