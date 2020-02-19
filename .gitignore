@@ -4,6 +4,9 @@ dist/
 npm-debug.log
 yarn-error.log
 
+# SRC Map files
+assets/*.map
+
 .svn
 composer.lock
 package-lock.json
