@@ -212,21 +212,16 @@ class Liveblog_Webhook_API {
 		} elseif ( false === $liveblog_entry && property_exists( $body->event, 'text' ) ) {
 			$original_text = $body->event->text;
 			$entry_data    = self::sanitize_entry( $original_text, $liveblog, $body->event->files ?? [] );
-			if ( isset( $body->event->thread_ts ) ) {
-				$parent_entry = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel );
-				if ( ! empty( $parent_entry ) ) {
-
-				}
-			}
 
 			$entry = Liveblog_Entry::insert(
 				[
-					'post_id'    => $liveblog,
-					'headline'   => $entry_data['headline'],
-					'content'    => $entry_data['content'],
-					'author_ids' => apply_filters( 'liveblog_slack_authors', [ $user ], $original_text ),
-					'user'       => $liveblog_author,
-					'thread_ts'  => isset( $body->event->thread_ts ) ? esc_attr( $body->event->thread_ts) : null,
+					'post_id'       => $liveblog,
+					'headline'      => $entry_data['headline'],
+					'content'       => $entry_data['content'],
+					'author_ids'    => apply_filters( 'liveblog_slack_authors', [ $user ], $original_text ),
+					'user'          => $liveblog_author,
+					'thread_ts'     => isset( $body->event->thread_ts ) ? sanitize_text_field( $body->event->thread_ts ) : null,
+					'parent_thread' => isset( $body->event->thread_ts ) ? self::get_post_by_ts( $body->event->thread_ts, $body->event->channel ) : null,
 				]
 			);
 
