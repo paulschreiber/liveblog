@@ -276,8 +276,10 @@ class Liveblog_Entry {
 			return new WP_Error( 'entry-update', __( 'Updating post failed', 'liveblog' ) );
 		}
 
-		global $coauthors_plus;
-		$coauthors_plus->add_coauthors( $args['entry_id'], $args['author_ids'], false, 'id' );
+		if ( ! empty( $args['author_ids'] ) ) {
+			global $coauthors_plus;
+			$coauthors_plus->add_coauthors( $args['entry_id'], $args['author_ids'], false, 'id' );
+		}
 
 		wp_cache_delete( 'liveblog_entries_asc_' . $args['post_id'], 'liveblog' );
 		do_action( 'liveblog_update_entry', $args['entry_id'], $args['post_id'] );
@@ -398,7 +400,6 @@ class Liveblog_Entry {
 	 */
 	private static function get_entry_shortcode( $entry ) {
 		$post = get_post( $entry );
-
 		if ( ! $post ) {
 			return '';
 		}
@@ -424,6 +425,18 @@ class Liveblog_Entry {
 		}
 
 		$shortcode = self::get_entry_shortcode( $entry );
+		if ( empty( $shortcode ) ) {
+			return;
+		}
+
+		$parent_post->post_content .= "\n\n" . $shortcode;
+		self::update( [
+			'entry_id' => $args['parent_thread'],
+			'post_id'  => $args['post_id'],
+			'content'  => $parent_post->post_content,
+			'headline' => $parent_post->post_title,
+			'status'   => $parent_post->post_status,
+		] );
 	}
 
 	private static function validate_args( $args, $content_required = true ) {
