@@ -122,7 +122,7 @@ class Liveblog_Webhook_API {
 	 * @param string $thread_ts The thread_ts string from the slack API.
 	 * @param string $channel The slack channel to check as well.
 	 *
-	 * @return bool|mixed
+	 * @return bool|int
 	 */
 	public static function get_post_by_ts( $thread_ts, $channel ) {
 		global $wpdb;

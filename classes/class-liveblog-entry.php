@@ -323,6 +323,15 @@ class Liveblog_Entry {
 			return $entry;
 		}
 
+		$thread_ts = get_post_meta( $args['entry_id'], Liveblog_Webhook_API::MESSAGE_TTS_META, true );
+		if ( ! empty( $thread_ts ) ) {
+			$parent_thread_channel = get_post_meta( $args['post_id'], Liveblog_Metadata::METADATA_SLACK_CHANNEL, true );
+			$parent_thread = Liveblog_Webhook_API::get_post_by_ts( $thread_ts, $parent_thread_channel );
+			if ( $parent_thread ) {
+				self::delete_threaded_entry( $entry, $parent_thread, $args );
+			}
+		}
+
 		wp_cache_delete( 'liveblog_entries_asc_' . $args['post_id'], 'liveblog' );
 		do_action( 'liveblog_delete_entry', $entry->ID, $args['post_id'] );
 
@@ -406,6 +415,38 @@ class Liveblog_Entry {
 
 		// TODO: Very minimal setup for entry IDs for now.
 		return "[liveblog_entry id='{$entry->ID}']";
+	}
+
+	/**
+	 * Deletes the threaded entry from the child.
+	 *
+	 * @param WP_Post $entry The entry.
+	 * @param int $parent_id The parent post to remove it from.
+	 * @param array $args The arguments sent to Liveblog_Entry::delete()
+	 */
+	private static function delete_threaded_entry( $entry, $parent_id, $args = [] ) {
+		if ( empty( $parent_id ) ) {
+			return;
+		}
+
+		$parent_post = get_post( $parent_id );
+		if ( ! $parent_post ) {
+			return;
+		}
+
+		$shortcode = self::get_entry_shortcode( $entry );
+		if ( empty( $shortcode ) ) {
+			return;
+		}
+
+		$parent_post->post_content = str_replace( "\n\n" . $shortcode, '', $parent_post->post_content );
+		self::update( [
+			'entry_id' => $parent_id,
+			'post_id'  => $args['post_id'],
+			'content'  => $parent_post->post_content,
+			'headline' => $parent_post->post_title,
+			'status'   => $parent_post->post_status,
+		] );
 	}
 
 	/**
