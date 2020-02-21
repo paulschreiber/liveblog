@@ -366,7 +366,7 @@ class Liveblog_Entry {
 
 		$new_entry_id = wp_insert_post(
 			[
-				'post_parent'  => $args['post_id'],
+				'post_parent'  => ! empty( $args['parent_thread'] ) ? absint( $args['parent_thread'] ) : $args['post_id'],
 				'post_content' => $args['content'],
 				'post_title'   => $args['headline'],
 				'post_type'    => Liveblog_CPT::$cpt_slug,
