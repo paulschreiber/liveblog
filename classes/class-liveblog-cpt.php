@@ -31,13 +31,20 @@ class Liveblog_CPT {
 
 		// sort by date in table view, overriding hierarchical default sort
 		add_filter( 'pre_get_posts', [ __CLASS__, 'filter_list_page' ] );
-
+		
+		add_shortcode( 'liveblog_entry', [ __CLASS__, 'shortcode_liveblog_entry' ] );
+		
 		// Hide Facebook Instant Articles status column on liveblog page
 		add_action( 'wp', function() {
 			if ( is_post_type_archive( self::$cpt_slug ) ) {
 				remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
 			}
 		});
+	}
+
+	public static function shortcode_liveblog_entry( $atts, $content, $tag ) {
+		$atts = shortcode_atts( [], $atts, $tag );
+		return 'This is a new code';
 	}
 
 	/**
