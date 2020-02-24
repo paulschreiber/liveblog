@@ -323,15 +323,6 @@ class Liveblog_Entry {
 			return $entry;
 		}
 
-		$thread_ts = get_post_meta( $args['entry_id'], Liveblog_Webhook_API::MESSAGE_TTS_META, true );
-		if ( ! empty( $thread_ts ) ) {
-			$parent_thread_channel = get_post_meta( $args['post_id'], Liveblog_Metadata::METADATA_SLACK_CHANNEL, true );
-			$parent_thread = Liveblog_Webhook_API::get_post_by_ts( $thread_ts, $parent_thread_channel );
-			if ( $parent_thread ) {
-				self::delete_threaded_entry( $entry, $parent_thread, $args );
-			}
-		}
-
 		wp_cache_delete( 'liveblog_entries_asc_' . $args['post_id'], 'liveblog' );
 		do_action( 'liveblog_delete_entry', $entry->ID, $args['post_id'] );
 
@@ -366,7 +357,7 @@ class Liveblog_Entry {
 
 		$new_entry_id = wp_insert_post(
 			[
-				'post_parent'  => ! empty( $args['parent_thread'] ) ? absint( $args['parent_thread'] ) : $args['post_id'],
+				'post_parent'  => $args['post_id'],
 				'post_content' => $args['content'],
 				'post_title'   => $args['headline'],
 				'post_type'    => Liveblog_CPT::$cpt_slug,
@@ -392,88 +383,61 @@ class Liveblog_Entry {
 			update_post_meta( $entry->ID, '_new_draft', current_time( 'timestamp' ) );
 		}
 
-		if ( ! empty( $args['parent_thread'] ) ) {
-			// We have a threaded reply, so we'll need to update the parent.
-			self::insert_threaded_entry( $entry, $args );
-		}
-
 		return $entry;
 	}
 
 	/**
 	 * Gets the formatted shortcode for an entry.
 	 *
-	 * @param int|WP_Post $entry The entry to create a shortcode for.
+	 * @param Object $entry_data The entry to create a shortcode for.
+	 * @param mixed  $user       User ID or empty string.
 	 *
 	 * @return string
 	 */
-	private static function get_entry_shortcode( $entry ) {
-		$post = get_post( $entry );
+	private static function get_entry_shortcode( $entry_data, $user ) {
+		if ( empty( $user ) || empty( $entry_data->event_time ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
+			return '';
+		}
+
+		$post = get_post( $entry_data );
 		if ( ! $post ) {
 			return '';
 		}
 
-		// TODO: Very minimal setup for entry IDs for now.
-		return "[liveblog_entry id='{$entry->ID}']";
-	}
+		$author    = absint( $user );
+		$timestamp = absint( $entry_data->event_time );
+		$content   = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text );
 
-	/**
-	 * Deletes the threaded entry from the child.
-	 *
-	 * @param WP_Post $entry The entry.
-	 * @param int $parent_id The parent post to remove it from.
-	 * @param array $args The arguments sent to Liveblog_Entry::delete()
-	 */
-	private static function delete_threaded_entry( $entry, $parent_id, $args = [] ) {
-		if ( empty( $parent_id ) ) {
-			return;
-		}
-
-		$parent_post = get_post( $parent_id );
-		if ( ! $parent_post ) {
-			return;
-		}
-
-		$shortcode = self::get_entry_shortcode( $entry );
-		if ( empty( $shortcode ) ) {
-			return;
-		}
-
-		$parent_post->post_content = str_replace( "\n\n" . $shortcode, '', $parent_post->post_content );
-		self::update( [
-			'entry_id' => $parent_id,
-			'post_id'  => $args['post_id'],
-			'content'  => $parent_post->post_content,
-			'headline' => $parent_post->post_title,
-			'status'   => $parent_post->post_status,
-		] );
+		return "[liveblog_entry author_id='{$author}' timestamp='{$timestamp}']
+		{$content}
+		[/liveblog_entry]";
 	}
 
 	/**
 	 * Inserts a threaded reply into the parent entry as a shortcode.
 	 *
-	 * @param WP_Post $entry The entry object.
-	 * @param array $args The original arguments.
+	 * @param Object $entry_data The entry object.
+	 * @param int    $parent_id  Parent ID to insert the entry content inside.
+	 *
+	 * @see Liveblog_Webhook_API::process_event()
+	 *
+	 * @return Liveblog_Entry|WP_Error Liveblog entry or error on failure.
 	 */
-	private static function insert_threaded_entry( $entry, $args ) {
-		if ( empty( $args['parent_thread'] ) ) {
-			return;
-		}
-
-		$parent_post = get_post( $args['parent_thread'] );
+	public static function insert_threaded_entry( $entry_data, $parent_id, $user ) {
+		$parent_post = get_post( $parent_id );
 		if ( ! $parent_post ) {
-			return;
+			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
 		}
 
-		$shortcode = self::get_entry_shortcode( $entry );
+		$shortcode = self::get_entry_shortcode( $entry_data, $user );
 		if ( empty( $shortcode ) ) {
-			return;
+			return new WP_Error( 'threaded-entry', __( 'An unknown error occured when creating shortcode for entry.', 'liveblog' ) );
 		}
 
 		$parent_post->post_content .= "\n\n" . $shortcode;
 		self::update( [
-			'entry_id' => $args['parent_thread'],
-			'post_id'  => $args['post_id'],
+			'entry_id' => $parent_post->ID,
+			'post_id'  => $parent_post->post_parent,
 			'content'  => $parent_post->post_content,
 			'headline' => $parent_post->post_title,
 			'status'   => $parent_post->post_status,
