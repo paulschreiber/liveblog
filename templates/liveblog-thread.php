@@ -31,12 +31,12 @@ $author_info[] = [
 	</div>
 
 	<header class="liveblog-meta">
-		<div class="liveblog-meta-authors">
+		<div class="liveblog-meta-authors" style="display: inline-block;">
 			<?php foreach ( $author_info as $author ) { ?>
 				<span class="liveblog-meta-author"><a href="<?php echo esc_url( $author['link_url'] ); ?>"><?php echo esc_html( $author['name'] ); ?></a></span>
 			<?php } ?>
 		</div>
-		<div>
+		<div style="display: inline-block; font-family: 'DecimaMono', Consolas, Monaco, monospace; color: #999; font-size:13px;">
 			<time datetime="<?php echo esc_attr( date( 'c', $timestamp ) ); ?>" class="liveblog-timestamp"><?php echo esc_html( date( 'g:i A', $timestamp ) ); ?></time>
 		</div>
 	</header>
