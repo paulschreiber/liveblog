@@ -42,8 +42,20 @@ class Liveblog_CPT {
 		});
 	}
 
+	/**
+	 * Render the shortcode content.
+	 *
+	 * @param array $atts The attributes.
+	 * @param string $content The content.
+	 * @param string $tag The tag.
+	 *
+	 * @return string
+	 */
 	public static function shortcode_liveblog_entry( $atts, $content, $tag ) {
-		$atts = shortcode_atts( [], $atts, $tag );
+		$atts = shortcode_atts( [
+			'author_id' => 0,
+			'timestamp' => time(),
+		], $atts, $tag );
 		return 'This is a new code';
 	}
 
