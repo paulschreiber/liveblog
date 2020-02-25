@@ -389,12 +389,13 @@ class Liveblog_Entry {
 	/**
 	 * Gets the formatted shortcode for an entry.
 	 *
-	 * @param Object $entry_data The entry to create a shortcode for.
-	 * @param mixed  $user       User ID or empty string.
+	 * @param Object $entry_data  The entry to create a shortcode for.
+	 * @param mixed  $user        User ID or empty string.
+	 * @param int    $liveblog_id The liveblog post ID.
 	 *
 	 * @return string
 	 */
-	private static function get_entry_shortcode( $entry_data, $user ) {
+	private static function get_entry_shortcode( $entry_data, $user, $liveblog_id = 0 ) {
 		if ( empty( $user ) || empty( $entry_data->event_time ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
 			return '';
 		}
@@ -406,10 +407,10 @@ class Liveblog_Entry {
 
 		$author    = absint( $user );
 		$timestamp = absint( $entry_data->event_time );
-		$content   = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text );
+		$content   = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
 
 		return "[liveblog_entry author_id='{$author}' timestamp='{$timestamp}']
-		{$content}
+		{$content['content']}
 		[/liveblog_entry]";
 	}
 
@@ -429,7 +430,7 @@ class Liveblog_Entry {
 			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
 		}
 
-		$shortcode = self::get_entry_shortcode( $entry_data, $user );
+		$shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent );
 		if ( empty( $shortcode ) ) {
 			return new WP_Error( 'threaded-entry', __( 'An unknown error occured when creating shortcode for entry.', 'liveblog' ) );
 		}
