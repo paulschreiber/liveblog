@@ -56,7 +56,10 @@ class Liveblog_CPT {
 			'author_id' => 0,
 			'timestamp' => time(),
 		], $atts, $tag );
-		return 'This is a new code';
+
+		// Need this within the template.
+		$atts['content'] = $content;
+		return Liveblog::get_template_part( 'liveblog-thread.php', $atts );
 	}
 
 	/**
