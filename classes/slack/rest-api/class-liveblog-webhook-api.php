@@ -196,8 +196,8 @@ class Liveblog_Webhook_API {
 
 		if( ! empty( $body->event->thread_ts ) && ! $is_edit ) {
 			// This is a threaded reply; handle it.
-			$parent = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel, $user );
-			return Liveblog_Entry::insert_threaded_entry( $body, $parent );
+			$parent = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel );
+			return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
 		} elseif ( $allow_edits && $is_edit && $liveblog_entry && 'draft' === $liveblog_entry->post_status ) {
 			$original_text = $body->event->message->text;
 			$entry_data    = self::sanitize_entry( $original_text );
