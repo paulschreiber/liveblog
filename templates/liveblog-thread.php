@@ -24,11 +24,13 @@ $author_info[] = [
 
 ?>
 <div class="liveblog-entry-main">
-	<div class="liveblog-meta-avatars">
-		<?php foreach ( $author_info as $author ) { ?>
-			<a class="liveblog-meta-avatar" href="<?php echo esc_url( $author['link_url'] ); ?>"><img width="60" height="60" src="<?php echo esc_url( $author['image_url'] ); ?>" class="attachment-30 size-30 wp-post-image" alt="<?php echo esc_attr( $author['name'] ); ?>"></a>
-		<?php } ?>
-	</div>
+	<?php if ( ! empty( $author['image_url'] ) ) : ?>
+		<div class="liveblog-meta-avatars">
+			<?php foreach ( $author_info as $author ) { ?>
+				<a class="liveblog-meta-avatar" href="<?php echo esc_url( $author['link_url'] ); ?>"><img width="60" height="60" src="<?php echo esc_url( $author['image_url'] ); ?>" class="attachment-30 size-30 wp-post-image" alt="<?php echo esc_attr( $author['name'] ); ?>"></a>
+			<?php } ?>
+		</div>
+	<?php endif; ?>
 
 	<header class="liveblog-meta">
 		<div class="liveblog-meta-authors" style="display: inline-block;">
