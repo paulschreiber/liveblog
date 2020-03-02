@@ -36,7 +36,15 @@ $author_info[] = [
 	<header class="liveblog-meta">
 		<div class="liveblog-meta-authors" style="display: inline-block;">
 			<?php foreach ( $author_info as $author ) { ?>
-				<span class="liveblog-meta-author"><a href="<?php echo esc_url( $author['link_url'] ); ?>"><?php echo esc_html( $author['name'] ); ?></a></span>
+				<span class="liveblog-meta-author">
+					<?php if ( false === $is_amp ) : ?>
+						<a href="<?php echo esc_url( $author['link_url'] ); ?>">
+							<?php echo esc_html( $author['name'] ); ?>
+						</a>
+					<?php else: ?>
+						<?php echo esc_html( $author['name'] ); ?>
+					<?php endif; ?>
+				</span>
 			<?php } ?>
 		</div>
 		<div style="display: inline-block; font-family: 'DecimaMono', Consolas, Monaco, monospace; color: #999; font-size:13px;">
