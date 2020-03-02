@@ -430,6 +430,10 @@ class Liveblog_Entry {
 			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
 		}
 
+		if ( 'publish' === $parent_post->post_status ) {
+			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
+		}
+
 		$shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent );
 		if ( empty( $shortcode ) ) {
 			return new WP_Error( 'threaded-entry', __( 'An unknown error occured when creating shortcode for entry.', 'liveblog' ) );
