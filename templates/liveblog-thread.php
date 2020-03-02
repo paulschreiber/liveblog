@@ -10,6 +10,7 @@ $author_id   = $template_variables['author_id'] ?? null;
 $timestamp   = $template_variables['timestamp'] ?? null;
 $content     = $template_variables['content'] ?? null;
 $author_info = [];
+$is_amp = function_exists( 'is_amp_endpoint' ) ? is_amp_endpoint() : false;
 
 if ( empty( $author_id ) || empty( $timestamp ) || empty( $content ) ) {
 	return;
@@ -24,7 +25,7 @@ $author_info[] = [
 
 ?>
 <div class="liveblog-entry-main">
-	<?php if ( ! empty( $author['image_url'] ) ) : ?>
+	<?php if ( ! $is_amp && ! empty( $author['image_url'] ) ) : ?>
 		<div class="liveblog-meta-avatars">
 			<?php foreach ( $author_info as $author ) { ?>
 				<a class="liveblog-meta-avatar" href="<?php echo esc_url( $author['link_url'] ); ?>"><img width="60" height="60" src="<?php echo esc_url( $author['image_url'] ); ?>" class="attachment-30 size-30 wp-post-image" alt="<?php echo esc_attr( $author['name'] ); ?>"></a>
