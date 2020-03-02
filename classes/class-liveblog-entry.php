@@ -396,7 +396,7 @@ class Liveblog_Entry {
 	 * @return string
 	 */
 	private static function get_entry_shortcode( $entry_data, $user, $liveblog_id = 0 ) {
-		if ( empty( $user ) || empty( $entry_data->event_time ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
+		if ( empty( $user ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
 			return '';
 		}
 
@@ -406,7 +406,7 @@ class Liveblog_Entry {
 		}
 
 		$author    = absint( $user );
-		$timestamp = absint( $entry_data->event_time );
+		$timestamp = current_time( 'timestamp' );
 		$content   = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
 
 		return "[liveblog_entry author_id='{$author}' timestamp='{$timestamp}']
