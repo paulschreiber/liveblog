@@ -44,6 +44,9 @@ class Liveblog_Metadata {
 			return;
 		}
 
+		// Page Attributes metabox takes along time to load parent pages
+		remove_meta_box( 'pageparentdiv', Liveblog_CPT::$cpt_slug, 'side' );
+
 		add_meta_box(
 			self::METABOX_KEY,
 			__( 'Liveblog', 'liveblog' ),
