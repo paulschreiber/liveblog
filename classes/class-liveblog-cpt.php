@@ -35,11 +35,14 @@ class Liveblog_CPT {
 		add_shortcode( 'liveblog_entry', [ __CLASS__, 'shortcode_liveblog_entry' ] );
 		
 		// Hide Facebook Instant Articles status column on liveblog page
-		add_action( 'wp', function() {
-			if ( is_post_type_archive( self::$cpt_slug ) ) {
-				remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
+		add_action(
+			'wp',
+			function() {
+				if ( is_post_type_archive( self::$cpt_slug ) ) {
+					remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
+				}
 			}
-		});
+		);
 	}
 
 	/**
@@ -52,10 +55,14 @@ class Liveblog_CPT {
 	 * @return string
 	 */
 	public static function shortcode_liveblog_entry( $atts, $content, $tag ) {
-		$atts = shortcode_atts( [
-			'author_id' => 0,
-			'timestamp' => time(),
-		], $atts, $tag );
+		$atts = shortcode_atts(
+			[
+				'author_id' => 0,
+				'timestamp' => time(),
+			],
+			$atts,
+			$tag 
+		);
 
 		// Need this within the template.
 		$atts['content'] = $content;

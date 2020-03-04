@@ -10,13 +10,13 @@ $author_id   = $template_variables['author_id'] ?? null;
 $timestamp   = $template_variables['timestamp'] ?? null;
 $content     = $template_variables['content'] ?? null;
 $author_info = [];
-$is_amp = function_exists( 'is_amp_endpoint' ) ? is_amp_endpoint() : false;
+$is_amp      = function_exists( 'is_amp_endpoint' ) ? is_amp_endpoint() : false;
 
 if ( empty( $author_id ) || empty( $timestamp ) || empty( $content ) ) {
 	return;
 }
 
-$coauthor = $coauthors_plus->get_coauthor_by( 'ID', $author_id );
+$coauthor      = $coauthors_plus->get_coauthor_by( 'ID', $author_id );
 $author_info[] = [
 	'name'      => $coauthor->display_name,
 	'link_url'  => get_author_posts_url( $coauthor->ID, $coauthor->user_nicename ),
@@ -41,7 +41,7 @@ $author_info[] = [
 						<a href="<?php echo esc_url( $author['link_url'] ); ?>">
 							<?php echo esc_html( $author['name'] ); ?>
 						</a>
-					<?php else: ?>
+					<?php else : ?>
 						<?php echo esc_html( $author['name'] ); ?>
 					<?php endif; ?>
 				</span>

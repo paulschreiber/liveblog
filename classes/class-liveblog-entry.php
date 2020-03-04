@@ -413,11 +413,11 @@ class Liveblog_Entry {
 			return '';
 		}
 
-		$author_id    = absint( $user );
-		$timestamp    = current_time( 'timestamp' );
-		$content      = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
-		$author_name  = self::get_userdata_with_filter( $author_id );
-		$author_name  = is_object( $author_name ) && isset( $author_name->display_name) ? $author_name->display_name : '';
+		$author_id   = absint( $user );
+		$timestamp   = current_time( 'timestamp' );
+		$content     = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
+		$author_name = self::get_userdata_with_filter( $author_id );
+		$author_name = is_object( $author_name ) && isset( $author_name->display_name ) ? $author_name->display_name : '';
 
 		return "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}']
 		{$content['content']}
@@ -450,13 +450,15 @@ class Liveblog_Entry {
 		}
 
 		$parent_post->post_content .= "\n\n" . $shortcode;
-		self::update( [
-			'entry_id' => $parent_post->ID,
-			'post_id'  => $parent_post->post_parent,
-			'content'  => $parent_post->post_content,
-			'headline' => $parent_post->post_title,
-			'status'   => $parent_post->post_status,
-		] );
+		self::update(
+			[
+				'entry_id' => $parent_post->ID,
+				'post_id'  => $parent_post->post_parent,
+				'content'  => $parent_post->post_content,
+				'headline' => $parent_post->post_title,
+				'status'   => $parent_post->post_status,
+			] 
+		);
 	}
 
 	private static function validate_args( $args, $content_required = true ) {

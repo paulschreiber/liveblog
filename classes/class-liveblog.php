@@ -1171,7 +1171,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			}
 
 			$current_post    = get_post();
-			$is_single_entry = is_object( $current_post) && 0 !== $current_post->post_parent;
+			$is_single_entry = is_object( $current_post ) && 0 !== $current_post->post_parent;
 			if ( $is_single_entry ) {
 				wp_dequeue_script( 'luxon' );
 				return;

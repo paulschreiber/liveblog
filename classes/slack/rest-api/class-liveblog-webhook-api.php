@@ -2,13 +2,13 @@
 
 class Liveblog_Webhook_API {
 
-	const EVENT_ENDPOINT   = 'v1/slack';
-	const CACHE_KEY        = 'liveblog';
-	const CACHE_GROUP      = 'slack';
-	const MESSAGE_ID_META  = 'client_msg_id';
-	const MESSAGE_TS_META  = 'ts';
-	const ASYNC_TASK       = 'slack_process_entry';
-	const INGEST_REGEX     = '/\AFOR PUB:/mi';
+	const EVENT_ENDPOINT  = 'v1/slack';
+	const CACHE_KEY       = 'liveblog';
+	const CACHE_GROUP     = 'slack';
+	const MESSAGE_ID_META = 'client_msg_id';
+	const MESSAGE_TS_META = 'ts';
+	const ASYNC_TASK      = 'slack_process_entry';
+	const INGEST_REGEX    = '/\AFOR PUB:/mi';
 
 	/**
 	 * Register Hooks
@@ -194,7 +194,7 @@ class Liveblog_Webhook_API {
 		$liveblog_entry = self::get_entry_by_message_id( $client_msg_id ?? 0 );
 		$allow_edits    = isset( $settings['enable_entry_updates'] ) && 'on' === $settings['enable_entry_updates'];
 
-		if( ! empty( $body->event->thread_ts ) && ! $is_edit ) {
+		if ( ! empty( $body->event->thread_ts ) && ! $is_edit ) {
 			// This is a threaded reply; handle it.
 			$parent = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel );
 			return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
@@ -218,11 +218,11 @@ class Liveblog_Webhook_API {
 
 			$entry = Liveblog_Entry::insert(
 				[
-					'post_id'       => $liveblog,
-					'headline'      => $entry_data['headline'],
-					'content'       => $entry_data['content'],
-					'author_ids'    => apply_filters( 'liveblog_slack_authors', [ $user ], $original_text ),
-					'user'          => $liveblog_author,
+					'post_id'    => $liveblog,
+					'headline'   => $entry_data['headline'],
+					'content'    => $entry_data['content'],
+					'author_ids' => apply_filters( 'liveblog_slack_authors', [ $user ], $original_text ),
+					'user'       => $liveblog_author,
 				]
 			);
 
