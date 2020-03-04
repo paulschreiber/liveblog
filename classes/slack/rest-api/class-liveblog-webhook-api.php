@@ -8,7 +8,7 @@ class Liveblog_Webhook_API {
 	const MESSAGE_ID_META  = 'client_msg_id';
 	const MESSAGE_TS_META  = 'ts';
 	const ASYNC_TASK       = 'slack_process_entry';
-	const INGEST_REGEX     = '/^FOR PUB:/mi';
+	const INGEST_REGEX     = '/\AFOR PUB:/mi';
 
 	/**
 	 * Register Hooks

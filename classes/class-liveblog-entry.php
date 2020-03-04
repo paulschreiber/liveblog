@@ -174,6 +174,12 @@ class Liveblog_Entry {
 			return false;
 		}
 
+		$cache_key = 'liveblog-entry-json-' . $entry_id;
+		$entry     = wp_cache_get( $cache_key );
+		if ( $entry && $this->get_updated_timestamp() <= $entry['updated_timestamp'] ) {
+			return (object) $entry;
+		}
+
 		$css_classes      = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
 		$headline         = $this->get_headline();
 		$rendered_content = self::render_content( $this->get_content(), $this->entry );
@@ -204,6 +210,8 @@ class Liveblog_Entry {
 
 
 		$entry = apply_filters( 'liveblog_entry_for_json', $entry, $this );
+		wp_cache_set( $cache_key, $entry, 'liveblog', 3600 );
+
 		return (object) $entry;
 	}
 

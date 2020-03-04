@@ -209,7 +209,7 @@ class Liveblog_CPT {
 				'taxonomies'    => [ 'post_tag' ],
 				'public'        => true,
 				'show_in_rest'  => true,
-				'supports'      => [ 'title', 'editor', 'thumbnail', 'revisions', 'author', 'shortlinks', 'exclude_from_external_editors', 'page-attributes' ],
+				'supports'      => [ 'title', 'editor', 'thumbnail', 'revisions', 'author', 'shortlinks', 'exclude_from_external_editors' ],
 				'hierarchical'  => true,
 				'has_archive'   => 'live-blog',
 				'menu_icon'     => 'dashicons-admin-post',
