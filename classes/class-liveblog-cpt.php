@@ -31,18 +31,11 @@ class Liveblog_CPT {
 
 		// sort by date in table view, overriding hierarchical default sort
 		add_filter( 'pre_get_posts', [ __CLASS__, 'filter_list_page' ] );
-		
+
 		add_shortcode( 'liveblog_entry', [ __CLASS__, 'shortcode_liveblog_entry' ] );
-		
+
 		// Hide Facebook Instant Articles status column on liveblog page
-		add_action(
-			'wp',
-			function() {
-				if ( is_post_type_archive( self::$cpt_slug ) ) {
-					remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
-				}
-			}
-		);
+		add_action( 'wp', [ __CLASS__, 'remove_fbia_column' ] );
 	}
 
 	/**
@@ -61,7 +54,7 @@ class Liveblog_CPT {
 				'timestamp' => time(),
 			],
 			$atts,
-			$tag 
+			$tag
 		);
 
 		// Need this within the template.
@@ -294,6 +287,14 @@ class Liveblog_CPT {
 		return $counts;
 	}
 
+	/**
+	 * Hide Facebook Instant Articles status column on liveblog page
+	 */
+	public static function remove_fbia_column() {
+		if ( is_post_type_archive( self::$cpt_slug ) ) {
+			remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
+		}
+	}
 }
 
 add_action( 'after_setup_theme', [ 'Liveblog_CPT', 'hooks' ] );
