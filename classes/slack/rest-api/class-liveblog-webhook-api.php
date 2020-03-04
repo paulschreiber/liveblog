@@ -135,8 +135,7 @@ class Liveblog_Webhook_API {
 
 		$cached = wp_cache_get( $cache_key, 'slack_threads' );
 		if ( false === $cached ) {
-			$db_query = $wpdb->prepare( "select post_id from {$wpdb->postmeta} where meta_key = %s and meta_value = %s limit 1", self::MESSAGE_TS_META, $thread_ts );
-			$cached   = $wpdb->get_var( $db_query ); // phpcs:ignore // GIVE RULE
+			$cached = $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT 1", self::MESSAGE_TS_META, $thread_ts ) );// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 
 			// We should only need to get this once during a live blog, 8 hours seems like enough time.
 			wp_cache_set( $cache_key, $cached, 'slack_threads', 8 * HOUR_IN_SECONDS );
