@@ -284,8 +284,10 @@ class Liveblog_Entry {
 			return new WP_Error( 'entry-update', __( 'Updating post failed', 'liveblog' ) );
 		}
 
-		global $coauthors_plus;
-		$coauthors_plus->add_coauthors( $args['entry_id'], $args['author_ids'], false, 'id' );
+		if ( ! empty( $args['author_ids'] ) ) {
+			global $coauthors_plus;
+			$coauthors_plus->add_coauthors( $args['entry_id'], $args['author_ids'], false, 'id' );
+		}
 
 		wp_cache_delete( 'liveblog_entries_asc_' . $args['post_id'], 'liveblog' );
 		do_action( 'liveblog_update_entry', $args['entry_id'], $args['post_id'] );
@@ -390,6 +392,71 @@ class Liveblog_Entry {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Gets the formatted shortcode for an entry.
+	 *
+	 * @param Object $entry_data  The entry to create a shortcode for.
+	 * @param mixed  $user        User ID or empty string.
+	 * @param int    $liveblog_id The liveblog post ID.
+	 *
+	 * @return string
+	 */
+	private static function get_entry_shortcode( $entry_data, $user, $liveblog_id = 0 ) {
+		if ( empty( $user ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
+			return '';
+		}
+
+		$post = get_post( $entry_data );
+		if ( ! $post ) {
+			return '';
+		}
+
+		$author_id    = absint( $user );
+		$timestamp    = current_time( 'timestamp' );
+		$content      = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
+		$author_name  = self::get_userdata_with_filter( $author_id );
+		$author_name  = is_object( $author_name ) && isset( $author_name->display_name) ? $author_name->display_name : '';
+
+		return "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}']
+		{$content['content']}
+		[/liveblog_entry]";
+	}
+
+	/**
+	 * Inserts a threaded reply into the parent entry as a shortcode.
+	 *
+	 * @param Object $entry_data The entry object.
+	 * @param int    $parent_id  Parent ID to insert the entry content inside.
+	 *
+	 * @see Liveblog_Webhook_API::process_event()
+	 *
+	 * @return Liveblog_Entry|WP_Error Liveblog entry or error on failure.
+	 */
+	public static function insert_threaded_entry( $entry_data, $parent_id, $user ) {
+		$parent_post = get_post( $parent_id );
+		if ( ! $parent_post ) {
+			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
+		}
+
+		if ( 'publish' === $parent_post->post_status ) {
+			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
+		}
+
+		$shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent );
+		if ( empty( $shortcode ) ) {
+			return new WP_Error( 'threaded-entry', __( 'An unknown error occured when creating shortcode for entry.', 'liveblog' ) );
+		}
+
+		$parent_post->post_content .= "\n\n" . $shortcode;
+		self::update( [
+			'entry_id' => $parent_post->ID,
+			'post_id'  => $parent_post->post_parent,
+			'content'  => $parent_post->post_content,
+			'headline' => $parent_post->post_title,
+			'status'   => $parent_post->post_status,
+		] );
 	}
 
 	private static function validate_args( $args, $content_required = true ) {

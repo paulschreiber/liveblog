@@ -31,13 +31,35 @@ class Liveblog_CPT {
 
 		// sort by date in table view, overriding hierarchical default sort
 		add_filter( 'pre_get_posts', [ __CLASS__, 'filter_list_page' ] );
-
+		
+		add_shortcode( 'liveblog_entry', [ __CLASS__, 'shortcode_liveblog_entry' ] );
+		
 		// Hide Facebook Instant Articles status column on liveblog page
 		add_action( 'wp', function() {
 			if ( is_post_type_archive( self::$cpt_slug ) ) {
 				remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
 			}
 		});
+	}
+
+	/**
+	 * Render the shortcode content.
+	 *
+	 * @param array $atts The attributes.
+	 * @param string $content The content.
+	 * @param string $tag The tag.
+	 *
+	 * @return string
+	 */
+	public static function shortcode_liveblog_entry( $atts, $content, $tag ) {
+		$atts = shortcode_atts( [
+			'author_id' => 0,
+			'timestamp' => time(),
+		], $atts, $tag );
+
+		// Need this within the template.
+		$atts['content'] = $content;
+		return Liveblog::get_template_part( 'liveblog-thread.php', $atts );
 	}
 
 	/**
