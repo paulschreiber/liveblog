@@ -416,8 +416,8 @@ class Liveblog_Entry {
 		$author_id    = absint( $user );
 		$timestamp    = current_time( 'timestamp' );
 		$content      = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
-		$author_names = self::get_authors( $author_id );
-		$author_name  = is_array( $author_names, $author_names[0] ) && $author_names ? $author_names[0]->name : '';
+		$author_name  = self::get_userdata_with_filter( $author_id );
+		$author_name  = is_object( $author_name ) && isset( $author_name->display_name) ? $author_name->display_name : '';
 
 		return "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}']
 		{$content['content']}
