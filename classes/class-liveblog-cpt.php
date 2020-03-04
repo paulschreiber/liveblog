@@ -31,6 +31,13 @@ class Liveblog_CPT {
 
 		// sort by date in table view, overriding hierarchical default sort
 		add_filter( 'pre_get_posts', [ __CLASS__, 'filter_list_page' ] );
+
+		// Hide Facebook Instant Articles status column on liveblog page
+		add_action( 'wp', function() {
+			if ( is_post_type_archive( self::$cpt_slug ) ) {
+				remove_filter( 'manage_posts_columns', 'fbia_indicator_column_heading' );
+			}
+		});
 	}
 
 	/**
@@ -180,7 +187,7 @@ class Liveblog_CPT {
 				'taxonomies'    => [ 'post_tag' ],
 				'public'        => true,
 				'show_in_rest'  => true,
-				'supports'      => [ 'title', 'editor', 'thumbnail', 'revisions', 'author', 'shortlinks', 'exclude_from_external_editors', 'page-attributes' ],
+				'supports'      => [ 'title', 'editor', 'thumbnail', 'revisions', 'author', 'shortlinks', 'exclude_from_external_editors' ],
 				'hierarchical'  => true,
 				'has_archive'   => 'live-blog',
 				'menu_icon'     => 'dashicons-admin-post',
@@ -222,10 +229,9 @@ class Liveblog_CPT {
 		if ( is_admin() && is_post_type_archive( self::$cpt_slug ) ) {
 
 			$cache_key = _count_posts_cache_key( $type, $perm ) . '-child';
+			$counts    = wp_cache_get( $cache_key, 'counts' );
 
-			$counts = wp_cache_get( $cache_key, 'counts' );
 			if ( false === $counts ) {
-
 				global $wpdb;
 
 				$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -241,6 +247,14 @@ class Liveblog_CPT {
 				$count_array = (array) $counts;
 				foreach ( $results as $item ) {
 					$count_array[ $item[0] ] = $item[1];
+				}
+
+				// need to include trash, auto-draft, inherit, request-pending, request-confirmed, request-failed and request-completed
+				// in the object. Otherwise you get undefined property errors.
+				foreach ( array_keys( get_post_stati( [ 'show_in_admin_all_list' => false ] ) ) as $item ) {
+					if ( ! isset( $count_array[ $item ] ) ) {
+						$count_array[ $item ] = 0;
+					}
 				}
 
 				$counts = (object) $count_array;

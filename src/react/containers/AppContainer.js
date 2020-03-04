@@ -90,29 +90,35 @@ AppContainer.propTypes = {
   total: PropTypes.number,
 };
 
-const filterPollingEntries = (entries, config) => {
-  const newEntries = [];
+const filterPollingEntries = (pollingEntries, config, entries) => {
+  let newPollingEntries = Object.values(pollingEntries);
 
+  // Bail if you're in the admin.
+  // Just give us the entries.
   if (config.is_admin) {
-    return Object.keys(entries);
+    return Object.keys(pollingEntries);
   }
 
-  Object.keys(entries).forEach((key) => {
-    if ('new' === entries[key].type) {
-      newEntries.push(key);
-    }
-  });
+  // Make array of IDs for entries that are loaded and ones that are loading
+  const entryIds = Object.values(entries).map(entry => entry.id);
+  const pollingEntryIds = newPollingEntries.map(entry => entry.id);
 
-  return newEntries;
+  // Compare the IDs for any differences. We only care about those since those are actually new.
+  // The original polling entries object has a mix of old and new.
+  const difference = pollingEntryIds.filter(x => !entryIds.includes(x));
+
+  // Get an array of entries that match the difference IDs so we return a complete set of data.
+  newPollingEntries = newPollingEntries.filter(entry => difference.includes(entry.id));
+
+  return newPollingEntries;
 };
 
 const mapStateToProps = state => ({
   page: state.pagination.page,
   loading: state.api.loading,
   total: state.api.total,
-  entries: Object.keys(state.api.entries)
-    .map(key => state.api.entries[key]),
-  polling: filterPollingEntries(state.polling.entries, state.config),
+  entries: Object.keys(state.api.entries).map(key => state.api.entries[key]),
+  polling: filterPollingEntries(state.polling.entries, state.config, state.api.entries),
   config: state.config,
 });
 

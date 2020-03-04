@@ -105,7 +105,7 @@ const updateEntryEpic = (action$, store) =>
         .timeout(10000)
         .flatMap(res =>
           concat(
-            of(updateEntrySuccess(res.response)),
+            of(updateEntrySuccess(res.response, store.getState().config)),
             of(entryEditClose({
               entryId: res.response.entries[0].id,
               config: store.getState().api,
@@ -126,9 +126,9 @@ const deleteEntryEpic = (action$, store) =>
         .catch(error => of(deleteEntryFailed(error))),
     );
 
-const getEntriesAfterChangeEpic = action$ =>
+const getEntriesAfterChangeEpic = (action$, store) =>
   action$.ofType(types.CREATE_ENTRY_SUCCESS, types.UPDATE_ENTRY_SUCCESS, types.DELETE_ENTRY_SUCCESS)
-    .map(({ payload }) => pollingSuccess(payload, true));
+    .map(({ payload }) => pollingSuccess(payload, true, store.getState().config));
 
 export default combineEpics(
   getEntriesEpic,

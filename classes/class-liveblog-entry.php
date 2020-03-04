@@ -174,21 +174,35 @@ class Liveblog_Entry {
 			return false;
 		}
 
-		$css_classes = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
-		$share_link  = get_permalink( $entry_id );
+		$cache_key = 'liveblog-entry-json-' . $entry_id;
+		$entry     = wp_cache_get( $cache_key );
+		if ( $entry && $this->get_updated_timestamp() <= $entry['updated_timestamp'] ) {
+			return (object) $entry;
+		}
+
+		$css_classes      = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
+		$headline         = $this->get_headline();
+		$rendered_content = self::render_content( $this->get_content(), $this->entry );
+
+		$share_description = $headline ? $headline : $rendered_content;
+		$share_description = wp_strip_all_tags( $share_description );
+		if ( $share_description && strlen( $share_description ) > 140 ) {
+			$share_description = substr( $share_description, 0, 140 ) . '…';
+		}
 
 		$entry = [
 			'id'                => $entry_id,
 			'type'              => $this->get_type(),
-			'render'            => self::render_content( $this->get_content(), $this->entry ),
-			'headline'          => $this->get_headline(),
+			'render'            => $rendered_content,
+			'headline'          => $headline,
 			'content'           => apply_filters( 'liveblog_before_edit_entry', $this->get_content() ),
 			'css_classes'       => $css_classes,
 			'timestamp'         => $this->get_timestamp(),
 			'updated_timestamp' => $this->get_updated_timestamp(),
 			'authors'           => self::get_authors( $entry_id ),
 			'entry_time'        => $this->get_entry_date_gmt( 'U', $entry_id ),
-			'share_link'        => $share_link,
+			'share_link'        => get_permalink( $entry_id ),
+			'share_description' => $share_description,
 			'status'            => self::get_status(),
 			'locked'            => self::get_locked(),
 			'locked_user'       => self::get_locked_by(),
@@ -196,6 +210,8 @@ class Liveblog_Entry {
 
 
 		$entry = apply_filters( 'liveblog_entry_for_json', $entry, $this );
+		wp_cache_set( $cache_key, $entry, 'liveblog', 3600 );
+
 		return (object) $entry;
 	}
 
@@ -279,6 +295,12 @@ class Liveblog_Entry {
 		// When an entry transitions from publish to draft we need to hide it on the front-end
 		self::toggle_entry_visibility( $entry_post, $entry_post->post_parent, $args['status'] );
 
+		//Remove entry lock
+		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
+
+		$entry       = self::from_post( $entry_post );
+		$entry->type = 'update';
+
 		// Add update to cache if its not a new draft
 		if ( ! empty( $is_new_draft ) && 'publish' === $args['status'] ) {
 			delete_post_meta( $entry_post->ID, '_new_draft' );
@@ -286,12 +308,6 @@ class Liveblog_Entry {
 		} else {
 			self::store_updated_entries( $entry_post, $entry_post->post_parent );
 		}
-
-		//Remove entry lock
-		self::toggle_entry_lock( $entry_post, $entry_post->post_parent, false );
-
-		$entry       = self::from_post( $entry_post );
-		$entry->type = 'update';
 
 		return $entry;
 	}
@@ -665,6 +681,8 @@ class Liveblog_Entry {
 				$entries[] = $entry;
 			} elseif ( empty( $selected_status ) ) {
 				$entries[] = $entry;
+			} elseif ( ! empty( $selected_status ) && Liveblog::current_user_can_edit_liveblog() ) {
+				$entries[] = $entry;
 			}
 		}
 
@@ -688,7 +706,7 @@ class Liveblog_Entry {
 		}
 
 		if ( ! $lock ) {
-			// add entry to updated entries cache to unlock it for othe editors
+			// add entry to updated entries cache to unlock it for other editors
 			self::store_updated_entries( $entry_post, $liveblog_id );
 			unset( $locked_entries[ $entry_post->ID ] );
 		} else {
@@ -716,7 +734,7 @@ class Liveblog_Entry {
 	 *
 	 * @return array
 	 */
-	public function get_locked_entries( $liveblog_id ) {
+	public static function get_locked_entries( $liveblog_id ) {
 		$cached_key     = 'lock_entries_' . $liveblog_id;
 		$locked_entries = wp_cache_get( $cached_key, 'liveblog' );
 

@@ -213,6 +213,9 @@ if ( ! class_exists( 'Liveblog' ) ) :
 
 			// don't include child posts in search results
 			add_filter( 'jetpack_search_es_query_args', [ __CLASS__, 'jetpack_search_es_query_args' ], 10, 2 );
+
+			// remove JavaScript from Twitter embeds
+			add_filter( 'embed_oembed_html', [ __CLASS__, 'embed_oembed_html' ], 10, 4 );
 		}
 
 		/**
@@ -283,6 +286,31 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				];
 			}
 			return $args;
+		}
+
+		/**
+		 * Remove <script> tag from Twitter embeds.
+		 *
+		 * @param string $html           The original HTML returned from the external oembed/embed provider.
+		 * @param string $url            The URL found in the content.
+		 * @param mixed  $attr           An array with extra attributes.
+		 * @param int    $post_id        The post ID.
+		 * @return string The filtered HTML.
+		 */
+		public static function embed_oembed_html( $html, $url, $attr, $post_id ) {
+			if ( 0 !== strpos( $url, 'https://twitter.com' ) ) {
+				return $html;
+			}
+
+			$rest_route  = $GLOBALS['wp']->query_vars['rest_route'] ?? '';
+			$is_liveblog = ( 0 === strpos( $rest_route, '/liveblog' ) );
+			if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || ! $is_liveblog ) {
+				return $html;
+			}
+
+			$html = str_replace( '<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>', '', $html ); // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript
+
+			return $html;
 		}
 
 		/**
@@ -552,7 +580,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $hidden_entries ) );
 			}
 
-			// append updated entries to the response if they exist. This should only be called from the admin
+			// append locked entries to the response if they exist
 			if ( self::current_user_can_edit_liveblog() ) {
 				$locked_entries = Liveblog_Entry::get_locked_entries( self::$post_id );
 				if ( ! empty( $locked_entries ) ) {
@@ -560,7 +588,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 				}
 			}
 
-			// append locked entries to the response if they exist
+			// append updated entries to the response if they exist. This should only be called from the admin
 			$updated_entries = Liveblog_Entry::get_updated_entries( self::$post_id, ! self::current_user_can_edit_liveblog() );
 			if ( ! empty( $updated_entries ) ) {
 				$entries_for_json = array_filter( array_merge( $entries_for_json, $updated_entries ) );
@@ -586,11 +614,11 @@ if ( ! class_exists( 'Liveblog' ) ) :
 						$entries_for_json[ $key ] = $entry->for_json();
 					}
 				}
-
-				$flattened = self::flatten_entries( $all_entries );
-				$total     = count( $flattened );
-				$pages     = ceil( $total / $per_page );
 			}
+
+			$flattened = self::flatten_entries( $all_entries );
+			$total     = count( $flattened );
+			$pages     = ceil( $total / $per_page );
 
 			// Create the result array
 			$result = [
@@ -1139,6 +1167,13 @@ if ( ! class_exists( 'Liveblog' ) ) :
 		public static function enqueue_scripts() {
 
 			if ( ! self::is_viewing_liveblog_post() && ! is_admin() ) {
+				return;
+			}
+
+			$current_post    = get_post();
+			$is_single_entry = is_object( $current_post) && 0 !== $current_post->post_parent;
+			if ( $is_single_entry ) {
+				wp_dequeue_script( 'luxon' );
 				return;
 			}
 

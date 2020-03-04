@@ -8,6 +8,7 @@ import * as userActions from '../actions/userActions';
 import { triggerOembedLoad, formattedTime } from '../utils/utils';
 import Editor from '../components/Editor';
 import DeleteConfirmation from '../components/DeleteConfirmation';
+import EntryShare from '../components/EntryShare';
 
 const authorLink = (author) => {
   let result = '';
@@ -123,7 +124,7 @@ class EntryContainer extends Component {
 
     return (
       <footer className="liveblog-entry-tools">
-        { isLocked && <div className="locked-info">
+        { isLocked && <div className="liveblog-locked-info">
           <span className="locked-avatar" dangerouslySetInnerHTML={{ __html: entry.locked_user.avatar }} />
           <span className="locked-text">{entry.locked_user.name} is currently editing</span>
         </div> }
@@ -154,17 +155,6 @@ class EntryContainer extends Component {
           </button>
         </div>
       </footer>
-    );
-  }
-
-  entryShare() {
-    const { entry } = this.props;
-
-    return (
-      <div className="liveblog-share" id={`liveblog-update-${entry.id}-share`}>
-        <button className="share-social share-facebook"></button>
-        <button className="share-social share-twitter"></button>
-      </div>
     );
   }
 
@@ -242,7 +232,7 @@ class EntryContainer extends Component {
               )
           }
           {!this.isEditing() && this.entryActions()}
-          {this.entryShare()}
+          <EntryShare entry={entry} />
         </div>
       </article>
     );

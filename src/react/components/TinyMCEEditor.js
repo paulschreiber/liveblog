@@ -5,7 +5,7 @@
 import React, { Component } from 'react';
 import { debounce } from 'lodash-es';
 
-export const maxContentLength = 65535;
+export const maxContentLength = 4294967295;
 
 export const getTinyMCEContent = () => {
   const currentEditor = tinymce.activeEditor;

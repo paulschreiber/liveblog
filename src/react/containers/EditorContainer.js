@@ -331,10 +331,9 @@ class EditorContainer extends Component {
           optionComponent={AuthorSelectOption}
           loadOptions={this.getUsers}
           clearable={false}
-          cache={false}
         />
 
-        { !isEditing && <button
+        { ( !isEditing || ( isEditing && 'draft' === status ) ) && <button
           disabled={ canPublish ? '' : 'disabled'}
           className="button button-secondary button-large liveblog-btn liveblog-draft-btn"
           onClick={ (event) => {

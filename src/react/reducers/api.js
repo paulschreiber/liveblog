@@ -50,10 +50,27 @@ export const api = (state = initialState, action) => {
         error: true,
       };
 
-    case 'POLLING_SUCCESS':
+    case 'POLLING_SUCCESS': {
+      const validStatuses = ['publish', 'draft'];
+      const currentView = action.config.status;
+
       if (action.payload.entries && action.payload.entries.length !== 0) {
         jQuery(document).trigger('liveblog-post-update', [action.payload]);
       }
+
+      // If the payload as entries then it has updates, so check if we're on a view.
+      if (action.payload.entries.length && validStatuses.includes(currentView)) {
+        // If we're in a vew ( draft/publish ) then walk over the entries.
+        action.payload.entries.map((entry) => {
+          const e = entry;
+          // If status does not match the selected view, set it to deleted.
+          if (e.status !== currentView) {
+            e.type = 'delete';
+          }
+          return e;
+        });
+      }
+
       return {
         ...state,
         error: false,
@@ -71,6 +88,7 @@ export const api = (state = initialState, action) => {
           : state.newestEntry,
         total: action.payload.total ? action.payload.total : state.total,
       };
+    }
 
     case 'CREATE_ENTRY_SUCCESS':
       return {
@@ -105,12 +123,20 @@ export const api = (state = initialState, action) => {
       const entries = { ...state.entries };
       const entry = { ...action.payload.entries[0] };
       const id = `id_${entry.id}`;
-      entries[id] = entry;
+      let total = state.total;
+
+      if (action.config.status !== entry.status && 'any' !== action.config.status) {
+        delete entries[id];
+        total -= 1;
+      } else {
+        entries[id] = entry;
+      }
 
       return {
         ...state,
         error: false,
         entries,
+        total,
         nonce: action.payload.nonce,
       };
     }
