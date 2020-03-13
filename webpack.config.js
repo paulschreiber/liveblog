@@ -17,6 +17,7 @@ const webpackConfig = {
     amp: path.join(__dirname, './src/react/amp.js'),
     theme: path.join(__dirname, './src/react/theme.js'),
     dashboard: path.join(__dirname, './src/react/dashboard.js'),
+    facebookSdk: path.join(__dirname, './src/react/facebook-sdk.js'),
   },
 
   output: {
