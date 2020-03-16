@@ -9,4 +9,6 @@
  * Text Domain: liveblog
  */
 
+define( 'LIVEBLOG_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
 require_once __DIR__ . '/classes/class-liveblog.php';

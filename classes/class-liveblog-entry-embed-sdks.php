@@ -11,10 +11,10 @@ class Liveblog_Entry_Embed_SDKs {
 	 * @var A list of provider SDKs
 	 */
 	protected static $sdks = [
-		'facebook'  => 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.5',
-		'twitter'   => 'https://platform.twitter.com/widgets.js',
-		'instagram' => 'https://platform.instagram.com/en_US/embeds.js',
-		'reddit'    => 'https://embed.redditmedia.com/widgets/platform.js',
+		'facebook-sdk'     => LIVEBLOG_PLUGIN_URL . 'assets/facebook-sdk.js',
+		'platform-twitter' => 'https://platform.twitter.com/widgets.js',
+		'instagram'        => 'https://platform.instagram.com/en_US/embeds.js',
+		'reddit'           => 'https://embed.redditmedia.com/widgets/platform.js',
 	];
 
 	/**
@@ -77,6 +77,7 @@ class Liveblog_Entry_Embed_SDKs {
 		if ( ! in_array( $handle, array_keys( self::$sdks ), true ) ) {
 			return $tag;
 		}
+
 		return str_replace( ' src', ' async="async" src', $tag );
 	}
 }
