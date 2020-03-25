@@ -436,7 +436,7 @@ class Liveblog_Entry {
 	 */
 	public static function update_threaded_entry( $entry_data, $parent_id, $user ) {
 		$parent_post = get_post( $parent_id );
-		if ( ! $parent_post ) {
+		if ( ! $parent_post || ! isset( $entry_data->event->previous_message ) ) {
 			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
 		}
 
@@ -444,7 +444,17 @@ class Liveblog_Entry {
 			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
 		}
 
-		// TODO: Handle the updates.
+		// Modify the entry data to get the old shortcode.
+		$modified_entry = $entry_data;
+		$modified_entry->event->text = $entry_data->event->previous_message->text;
+
+		$shortcode_to_replace = self::get_entry_shortcode( $modified_entry, $user, $parent_post->post_parent );
+
+		// Edited entries have a data.event.message.text attribute instead of just data.event.text - blame slack.
+		$entry_data->event->text = $entry_data->event->message->text;
+		$new_shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent );
+
+		$parent_post->post_content = str_replace( $shortcode_to_replace, $new_shortcode, $parent_post->post_content );
 
 		return self::update(
 			[
