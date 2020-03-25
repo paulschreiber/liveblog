@@ -1250,7 +1250,6 @@ if ( ! class_exists( 'Liveblog' ) ) :
 						'use_rest_api'                 => intval( self::use_rest_api() ),
 						'endpoint_url'                 => self::get_entries_endpoint_url(),
 						'prefill_author_field'         => apply_filters( 'liveblog_prefill_author_field', true ),
-						'use_tinymce'                  => apply_filters( 'liveblog_use_tinymce_editor', false ),
 						'editorSettings'               => apply_filters(
 							'liveblog_tinymce_editor_settings',
 							[
