@@ -425,6 +425,39 @@ class Liveblog_Entry {
 	}
 
 	/**
+	 * Updates a threaded reply in the parent entry.
+	 *
+	 * @param Object $entry_data The entry object.
+	 * @param int    $parent_id  Parent ID to insert the entry content inside.
+	 *
+	 * @see Liveblog_Webhook_API::process_event()
+	 *
+	 * @return Liveblog_Entry|WP_Error Liveblog entry or error on failure.
+	 */
+	public static function update_threaded_entry( $entry_data, $parent_id, $user ) {
+		$parent_post = get_post( $parent_id );
+		if ( ! $parent_post ) {
+			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
+		}
+
+		if ( 'publish' === $parent_post->post_status ) {
+			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
+		}
+
+		// TODO: Handle the updates.
+
+		return self::update(
+			[
+				'entry_id' => $parent_post->ID,
+				'post_id'  => $parent_post->post_parent,
+				'content'  => $parent_post->post_content,
+				'headline' => $parent_post->post_title,
+				'status'   => $parent_post->post_status,
+			]
+		);
+	}
+
+	/**
 	 * Inserts a threaded reply into the parent entry as a shortcode.
 	 *
 	 * @param Object $entry_data The entry object.
@@ -450,7 +483,7 @@ class Liveblog_Entry {
 		}
 
 		$parent_post->post_content .= "\n\n" . $shortcode;
-		self::update(
+		return self::update(
 			[
 				'entry_id' => $parent_post->ID,
 				'post_id'  => $parent_post->post_parent,
