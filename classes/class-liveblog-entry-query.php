@@ -18,11 +18,14 @@ class Liveblog_Entry_Query {
 	 */
 	public function get( $args = [] ) {
 		$defaults = [
-			'post_type'      => Liveblog_CPT::$cpt_slug,
-			'post_parent'    => $this->post_id,
-			'orderby'        => 'post_date_gmt',
-			'order'          => 'DESC',
-			'posts_per_page' => Liveblog::MAX_LAZY_LOAD_ENTRY_COUNT,
+			'post_type'              => Liveblog_CPT::$cpt_slug,
+			'post_parent'            => $this->post_id,
+			'orderby'                => 'post_date_gmt',
+			'order'                  => 'DESC',
+			'posts_per_page'         => Liveblog::MAX_LAZY_LOAD_ENTRY_COUNT,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'no_found_rows'          => true,
 		];
 
 		$args = apply_filters( 'liveblog_query_args', wp_parse_args( $args, $defaults ) );
