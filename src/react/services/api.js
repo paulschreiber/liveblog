@@ -81,7 +81,7 @@ export function createEntry(entry, config, nonce = false) {
     body: {
       crud_action: 'insert',
       post_id: config.post_id,
-      content: (config.use_tinymce === '1') ? getTinyMCEContent() : entry.content,
+      content: getTinyMCEContent(),
       author_ids: entry.authorIds,
       headline: entry.headline,
       status: entry.status,
@@ -96,13 +96,11 @@ export function createEntry(entry, config, nonce = false) {
   };
 
   // Clear TinyMCE after a brief delay.
-  if (config.use_tinymce === '1') {
-    setTimeout(() => {
-      clearTinyMCEContent();
-      clearAuthors();
-      clearHeadline();
-    }, 250);
-  }
+  setTimeout(() => {
+    clearTinyMCEContent();
+    clearAuthors();
+    clearHeadline();
+  }, 250);
 
   jQuery(document).trigger('liveblog-entry-created', [settings]);
 
@@ -117,7 +115,7 @@ export function updateEntry(entry, config, nonce = false) {
       crud_action: 'update',
       post_id: config.post_id,
       entry_id: entry.id,
-      content: (config.use_tinymce === '1' && !entry.statusUpdate) ? getTinyMCEContent() : entry.content,
+      content: !entry.statusUpdate ? getTinyMCEContent() : entry.content,
       author_ids: entry.authorIds,
       headline: entry.headline,
       status: entry.status,
