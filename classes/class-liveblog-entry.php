@@ -426,7 +426,7 @@ class Liveblog_Entry {
 			$partial = '';
 		}
 
-		return "slack_entry_id='{$ts}']{$content['content']}[/liveblog_entry]";
+		return $partial . "slack_entry_id='{$ts}']{$content['content']}[/liveblog_entry]";
 	}
 
 	/**
