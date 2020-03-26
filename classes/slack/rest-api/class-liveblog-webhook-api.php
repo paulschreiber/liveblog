@@ -6,8 +6,9 @@ class Liveblog_Webhook_API {
 	const CACHE_KEY       = 'liveblog';
 	const CACHE_GROUP     = 'slack';
 	const MESSAGE_ID_META = 'client_msg_id';
+	const MESSAGE_TS_META = 'ts';
 	const ASYNC_TASK      = 'slack_process_entry';
-	const INGEST_REGEX    = '/^FOR PUB:/mi';
+	const INGEST_REGEX    = '/\AFOR PUB:/mi';
 
 	/**
 	 * Register Hooks
@@ -115,6 +116,35 @@ class Liveblog_Webhook_API {
 	}
 
 	/**
+	 * Gets a post by it's timestamp string from the slack API.
+	 *
+	 * @param string $thread_ts The thread_ts string from the slack API.
+	 * @param string $channel The slack channel to check as well.
+	 *
+	 * @return bool|int
+	 */
+	public static function get_post_by_ts( $thread_ts, $channel ) {
+		global $wpdb;
+
+		// Some basic sanitization prior to usage.
+		$thread_ts = sanitize_text_field( $thread_ts );
+		$channel   = sanitize_text_field( $channel );
+
+		// Creates a unique key based on channel and microsecond time.
+		$cache_key = $thread_ts . '-' . $channel;
+
+		$cached = wp_cache_get( $cache_key, 'slack_threads' );
+		if ( false === $cached ) {
+			$cached = $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT 1", self::MESSAGE_TS_META, $thread_ts ) );// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+			// We should only need to get this once during a live blog, 8 hours seems like enough time.
+			wp_cache_set( $cache_key, $cached, 'slack_threads', 8 * HOUR_IN_SECONDS );
+		}
+
+		return $cached;
+	}
+
+	/**
 	 * Process cron event to ingest slack message
 	 *
 	 * @param $raw_body
@@ -163,7 +193,16 @@ class Liveblog_Webhook_API {
 		$liveblog_entry = self::get_entry_by_message_id( $client_msg_id ?? 0 );
 		$allow_edits    = isset( $settings['enable_entry_updates'] ) && 'on' === $settings['enable_entry_updates'];
 
-		if ( $allow_edits && $is_edit && $liveblog_entry && 'draft' === $liveblog_entry->post_status ) {
+		if ( ! empty( $body->event->thread_ts ) || ( isset( $body->event->previous_message ) && ! empty( $body->event->previous_message->thread_ts ) ) ) {
+			// This is a threaded reply; handle it.
+			$thread_ts = $is_edit ? $body->event->previous_message->thread_ts : $body->event->thread_ts;
+			$parent    = self::get_post_by_ts( $thread_ts, $body->event->channel );
+			if ( ! $is_edit ) {
+				return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
+			}
+
+			return Liveblog_Entry::update_threaded_entry( $body, $parent, $user );
+		} elseif ( $allow_edits && $is_edit && $liveblog_entry && 'draft' === $liveblog_entry->post_status ) {
 			$original_text = $body->event->message->text;
 			$entry_data    = self::sanitize_entry( $original_text );
 
@@ -193,6 +232,11 @@ class Liveblog_Webhook_API {
 
 			if ( ! is_wp_error( $entry ) ) {
 				update_post_meta( $entry->get_id(), self::MESSAGE_ID_META, sanitize_text_field( $body->event->client_msg_id ) );
+
+				// TODO: Verify that edits do not change the timestamp.
+				if ( ! $is_edit ) {
+					update_post_meta( $entry->get_id(), self::MESSAGE_TS_META, sanitize_text_field( $body->event->ts ) );
+				}
 			}
 		}
 	}
@@ -274,7 +318,7 @@ class Liveblog_Webhook_API {
 					}
 				} elseif ( $is_oembed ) {
 					// append new line to oembeds so that you can have back to back embed links
-					$link = PHP_EOL . $match[1] . PHP_EOL;
+					$link = '<p>' . $match[1] . '</p>';
 				}
 
 				return $link;

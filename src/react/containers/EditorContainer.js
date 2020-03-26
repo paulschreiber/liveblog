@@ -93,6 +93,20 @@ class EditorContainer extends Component {
     });
 
     this.getUsers = debounce(this.getUsers.bind(this), props.config.author_list_debounce_time);
+
+    this.handleWindowClose = (e) => {
+      if (props.isEditing) {
+        this.close(e);
+      }
+    };
+  }
+
+  componentDidMount() {
+    window.addEventListener('beforeunload', this.handleWindowClose);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('beforeunload', this.handleWindowClose);
   }
 
   setReadOnly(state) {
@@ -333,7 +347,7 @@ class EditorContainer extends Component {
           clearable={false}
         />
 
-        { ( !isEditing || ( isEditing && 'draft' === status ) ) && <button
+        {(!isEditing || (isEditing && 'draft' === status)) && <button
           disabled={ canPublish ? '' : 'disabled'}
           className="button button-secondary button-large liveblog-btn liveblog-draft-btn"
           onClick={ (event) => {

@@ -174,6 +174,12 @@ class Liveblog_Entry {
 			return false;
 		}
 
+		$cache_key = 'liveblog-entry-json-' . $entry_id;
+		$entry     = wp_cache_get( $cache_key );
+		if ( $entry && $this->get_updated_timestamp() <= $entry['updated_timestamp'] ) {
+			return (object) $entry;
+		}
+
 		$css_classes      = implode( ' ', apply_filters( 'post_class', [ 'liveblog' ], 'liveblog', $entry_id ) );
 		$headline         = $this->get_headline();
 		$rendered_content = self::render_content( $this->get_content(), $this->entry );
@@ -204,6 +210,8 @@ class Liveblog_Entry {
 
 
 		$entry = apply_filters( 'liveblog_entry_for_json', $entry, $this );
+		wp_cache_set( $cache_key, $entry, 'liveblog', 3600 );
+
 		return (object) $entry;
 	}
 
@@ -276,8 +284,10 @@ class Liveblog_Entry {
 			return new WP_Error( 'entry-update', __( 'Updating post failed', 'liveblog' ) );
 		}
 
-		global $coauthors_plus;
-		$coauthors_plus->add_coauthors( $args['entry_id'], $args['author_ids'], false, 'id' );
+		if ( ! empty( $args['author_ids'] ) ) {
+			global $coauthors_plus;
+			$coauthors_plus->add_coauthors( $args['entry_id'], $args['author_ids'], false, 'id' );
+		}
 
 		wp_cache_delete( 'liveblog_entries_asc_' . $args['post_id'], 'liveblog' );
 		do_action( 'liveblog_update_entry', $args['entry_id'], $args['post_id'] );
@@ -392,6 +402,123 @@ class Liveblog_Entry {
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Gets the formatted shortcode for an entry.
+	 *
+	 * @param Object $entry_data            The entry to create a shortcode for.
+	 * @param mixed  $user                  User ID or empty string.
+	 * @param int    $liveblog_id           The liveblog post ID.
+	 * @param bool   $should_return_partial Rather to retrieve a partial shortcode for search/replace.
+	 *
+	 * @return string
+	 */
+	private static function get_entry_shortcode( $entry_data, $user, $liveblog_id = 0, $should_return_partial = false ) {
+		if ( empty( $user ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
+			return '';
+		}
+
+		$post = get_post( $entry_data );
+		if ( ! $post ) {
+			return '';
+		}
+
+		$author_id   = absint( $user );
+		$ts          = $entry_data->event->ts;
+		$timestamp   = current_time( 'timestamp' );
+		$content     = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
+		$author_name = self::get_userdata_with_filter( $author_id );
+		$author_name = is_object( $author_name ) && isset( $author_name->display_name ) ? $author_name->display_name : '';
+
+		$partial = "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}' ";
+		if ( $should_return_partial ) {
+			$partial = '';
+		}
+
+		return "slack_entry_id='{$ts}']{$content['content']}[/liveblog_entry]";
+	}
+
+	/**
+	 * Updates a threaded reply in the parent entry.
+	 *
+	 * @param Object $entry_data The entry object.
+	 * @param int    $parent_id  Parent ID to insert the entry content inside.
+	 *
+	 * @see Liveblog_Webhook_API::process_event()
+	 *
+	 * @return Liveblog_Entry|WP_Error Liveblog entry or error on failure.
+	 */
+	public static function update_threaded_entry( $entry_data, $parent_id, $user ) {
+		$parent_post = get_post( $parent_id );
+		if ( ! $parent_post || ! isset( $entry_data->event->previous_message ) ) {
+			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
+		}
+
+		if ( 'publish' === $parent_post->post_status ) {
+			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
+		}
+
+		// Modify the entry data to get the old shortcode.
+		$modified_entry = $entry_data;
+		$modified_entry->event->text = $entry_data->event->previous_message->text;
+		$modified_entry->event->ts = $entry_data->event->previous_message->ts;
+
+		$shortcode_to_replace = self::get_entry_shortcode( $modified_entry, $user, $parent_post->post_parent, true );
+		$shortcode_to_replace = preg_replace('/\t+/', '', $shortcode_to_replace);
+
+		// Edited entries have a data.event.message.text attribute instead of just data.event.text - blame slack.
+		$entry_data->event->text = $entry_data->event->message->text;
+		$new_shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent, true );
+
+		$content = str_replace( $shortcode_to_replace, $new_shortcode, $parent_post->post_content );
+
+		return self::update(
+			[
+				'entry_id' => $parent_post->ID,
+				'post_id'  => $parent_post->post_parent,
+				'content'  => $content,
+				'headline' => $parent_post->post_title,
+				'status'   => $parent_post->post_status,
+			]
+		);
+	}
+
+	/**
+	 * Inserts a threaded reply into the parent entry as a shortcode.
+	 *
+	 * @param Object $entry_data The entry object.
+	 * @param int    $parent_id  Parent ID to insert the entry content inside.
+	 *
+	 * @see Liveblog_Webhook_API::process_event()
+	 *
+	 * @return Liveblog_Entry|WP_Error Liveblog entry or error on failure.
+	 */
+	public static function insert_threaded_entry( $entry_data, $parent_id, $user ) {
+		$parent_post = get_post( $parent_id );
+		if ( ! $parent_post ) {
+			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
+		}
+
+		if ( 'publish' === $parent_post->post_status ) {
+			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
+		}
+
+		$shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent );
+		if ( empty( $shortcode ) ) {
+			return new WP_Error( 'threaded-entry', __( 'An unknown error occured when creating shortcode for entry.', 'liveblog' ) );
+		}
+
+		$parent_post->post_content .= "\n\n" . $shortcode;
+		return self::update(
+			[
+				'entry_id' => $parent_post->ID,
+				'post_id'  => $parent_post->post_parent,
+				'content'  => $parent_post->post_content,
+				'headline' => $parent_post->post_title,
+				'status'   => $parent_post->post_status,
+			] 
+		);
 	}
 
 	private static function validate_args( $args, $content_required = true ) {
@@ -593,10 +720,6 @@ class Liveblog_Entry {
 			unset( $hidden_entries[ $entry_post->ID ] );
 		}
 
-		if ( 'delete' === $status ) {
-			self::store_updated_entries( $entry_post, $liveblog_id, true );
-		}
-
 		wp_cache_set( $cached_key, array_filter( $hidden_entries ), 'liveblog', 30 ); // phpcs:ignore WordPressVIPMinimum.Performance.LowExpiryCacheTime.LowCacheTime
 	}
 
@@ -625,7 +748,7 @@ class Liveblog_Entry {
 				continue;
 			}
 
-			$entries[ $entry_id ] = $entry;
+			$entries[] = $entry;
 		}
 
 		return $entries;
@@ -684,11 +807,11 @@ class Liveblog_Entry {
 			}
 
 			if ( ! empty( $selected_status ) && $selected_status === $entry->status ) {
-				$entries[ $entry_id ] = $entry;
+				$entries[] = $entry;
 			} elseif ( empty( $selected_status ) ) {
-				$entries[ $entry_id ] = $entry;
+				$entries[] = $entry;
 			} elseif ( ! empty( $selected_status ) && Liveblog::current_user_can_edit_liveblog() ) {
-				$entries[ $entry_id ] = $entry;
+				$entries[] = $entry;
 			}
 		}
 

@@ -239,7 +239,7 @@ class Liveblog_AMP {
 			$request = self::set_request_last_from_entries( $entries, $request );
 
 			// Key entries by ID so they can be overwritten.
-			if ( ! empty ( $entries['entries'] ) ) {
+			if ( ! empty( $entries['entries'] ) ) {
 				$e = [];
 				foreach ( $entries['entries'] as $entry ) {
 					$e[ 'entry_' . $entry->id ] = $entry;
