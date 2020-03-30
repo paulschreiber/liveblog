@@ -27,6 +27,11 @@ class Liveblog_Slack_Settings {
 			'type'        => 'checkbox',
 			'description' => 'Enable the ability to update an entry from slack',
 		],
+		'enable_debug'          => [
+			'label'       => 'Enable Debugging',
+			'type'        => 'checkbox',
+			'description' => 'Logs Slack REST requests to error logs or new-relic logs if available.',
+		],
 	];
 
 	/**

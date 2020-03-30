@@ -53,6 +53,12 @@ class Liveblog_Webhook_API {
 			return new WP_Error( 'slack_not_configured', 'Slack liveblog integration is missing the slack signing secret', [ 'status' => 200 ] );
 		}
 
+		if ( ! empty( $settings['enable_debug'] ) && 'on' === $settings['enable_debug'] ) {
+			if ( extension_loaded( 'newrelic' ) ) {
+				newrelic_notice_error( $raw_body );
+			}
+		}
+
 		//Validate slack request
 		$validate = self::validate_request( $request );
 		if ( is_wp_error( $validate ) ) {
