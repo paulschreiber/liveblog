@@ -23,6 +23,19 @@ $author_info[] = [
 	'image_url' => get_the_post_thumbnail_url( $coauthor->ID, [ 60, 60 ] ),
 ];
 
+if ( apply_filters( 'liveblog_entry_enable_embeds', true ) ) {
+	if ( get_option( 'embed_autourls' ) ) {
+		$liveblog_entry_embed = new Liveblog_Entry_Embed();
+		$content              = $liveblog_entry_embed->autoembed( $content );
+	}
+	$content = do_shortcode( $content );
+}
+
+// Remove the filter as it's causing amp pages to crash
+if ( function_exists( 'amp_activate' ) && is_amp_endpoint() ) {
+	remove_filter( 'the_content', [ 'Liveblog_AMP', 'append_liveblog_to_content' ], 7 );
+}
+
 ?>
 <div class="liveblog-entry-main">
 	<?php foreach ( $author_info as $author ) : ?>
