@@ -52,6 +52,46 @@ class Liveblog_AMP_Template {
 		return $default;
 	}
 
+	/*
+	 * Sanitize HTML with WP AMP
+	 */
+	public static function sanitize_html( $html ) {
+		if ( class_exists( 'AMP_Content_Sanitizer' ) && class_exists( 'AMP_Allowed_Tags_Generated' ) ) {
+
+			// Apply AMP Content Sanitizer to $html
+			list( $sanitized_html, $sanitize_scripts, $sanitize_styles ) = AMP_Content_Sanitizer::sanitize(
+				$html,
+				[
+					'AMP_Style_Sanitizer'             => [],
+					'AMP_Img_Sanitizer'               => [],
+					'AMP_Video_Sanitizer'             => [],
+					'AMP_Audio_Sanitizer'             => [],
+					'AMP_Playbuzz_Sanitizer'          => [],
+					'AMP_Iframe_Sanitizer'            => [
+						'add_placeholder' => true,
+					],
+					'AMP_Tag_And_Attribute_Sanitizer' => [],
+				]
+			);
+
+			// Get Allowed Tags including AMP HTML
+			$allowed_amp_tags        = AMP_Allowed_Tags_Generated::get_allowed_tags();
+			$allowed_amp_attr        = AMP_Allowed_Tags_Generated::get_allowed_attributes();
+			$allowed_amp_layout_attr = AMP_Allowed_Tags_Generated::get_layout_attributes();
+			$wp_kses_amp_tags        = [];
+			foreach ( $allowed_amp_tags as $allowed_amp_tag => $value ) {
+				// Get the attribute spec list from the allowed tags and merge with globally allowed attributes
+				// https://github.com/Automattic/amp-wp/blob/3c69b214b1350a4ce1e6da92a1831a31cbee20ef/includes/sanitizers/class-amp-allowed-tags-generated.php#L17
+				$allowed_attr = array_merge( $allowed_amp_attr, $allowed_amp_layout_attr, $value[0]['attr_spec_list'] );
+				// Rebuild allowed tags array
+				$wp_kses_amp_tags[ $allowed_amp_tag ] = $allowed_attr;
+			}
+			echo wp_kses( $sanitized_html, $wp_kses_amp_tags );
+		} else {
+			echo wp_kses_post( $html );
+		}
+	}
+
 	/**
 	 * Render template.
 	 *
