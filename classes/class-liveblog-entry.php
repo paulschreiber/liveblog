@@ -388,7 +388,7 @@ class Liveblog_Entry {
 
 		// Store meta for newly created drafts
 		if ( 'draft' === $entry->post_status ) {
-			update_post_meta( $entry->ID, '_new_draft', current_time( 'timestamp' ) );
+			update_post_meta( $entry->ID, '_new_draft', time() );
 		}
 
 		return $entry;
@@ -416,7 +416,7 @@ class Liveblog_Entry {
 
 		$author_id   = absint( $user );
 		$ts          = $entry_data->event->ts;
-		$timestamp   = current_time( 'timestamp' );
+		$timestamp   = time();
 		$content     = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
 		$author_name = self::get_userdata_with_filter( $author_id );
 		$author_name = is_object( $author_name ) && isset( $author_name->display_name ) ? $author_name->display_name : '';

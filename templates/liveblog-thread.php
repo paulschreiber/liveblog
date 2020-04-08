@@ -48,17 +48,17 @@ $author_info[] = [
 			<?php } ?>
 		</div>
 		<div style="display: inline-block; font-family: 'DecimaMono', Consolas, Monaco, monospace; color: #999; font-size:13px;">
-			<time datetime="<?php echo esc_attr( date( 'c', $timestamp ) ); ?>" class="liveblog-timestamp"><?php echo esc_html( date( 'g:i A', $timestamp ) ); ?></time>
+			<time datetime="<?php echo esc_attr( gmdate( 'c', $timestamp ) ); ?>" class="liveblog-timestamp"><?php echo esc_html( gmdate( 'g:i A', $timestamp ) ); ?></time>
 		</div>
 	</header>
 
 	<div class="liveblog-entry-content">
 		<?php
-			if ( $is_amp ) {
-				Liveblog_AMP_Template::sanitize_html( $content );
-			} else {
-				echo wp_kses_post( $content );
-			}
+		if ( $is_amp ) {
+			Liveblog_AMP_Template::sanitize_html( $content );
+		} else {
+			echo wp_kses_post( $content );
+		}
 		?>
 	</div>
 </div>

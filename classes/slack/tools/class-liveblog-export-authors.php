@@ -20,7 +20,7 @@ class Liveblog_Export_Authors {
 		$output = $this->get_contributors( $output );
 
 		// create and save the csv
-		$file_name = 'author-export-' . date( 'Y-m-d' ) . '.csv';
+		$file_name = 'author-export-' . gmdate( 'Y-m-d' ) . '.csv';
 
 		Header( 'HTTP/1.1 200 OK' );
 		Header( 'Content-Type: text/csv' );

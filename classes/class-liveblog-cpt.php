@@ -192,7 +192,7 @@ class Liveblog_CPT {
 	 * @return object|WP_Error
 	 */
 	public static function register_post_type() {
-		return register_post_type(
+		return register_post_type( // phpcs:ignore WordPress.NamingConventions.ValidPostTypeSlug.NotStringLiteral
 			self::$cpt_slug,
 			[
 				'labels'        => [
