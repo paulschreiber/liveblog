@@ -1552,7 +1552,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 
 				//Instantiate a entry query object
 				$query            = new Liveblog_Entry_Query( $post_id, self::KEY );
-				$latest_timestamp = ( null !== $query->get_latest_timestamp() ) ? $query->get_latest_timestamp() : strtotime( date( 'Y-m-d H:i:s' ) );
+				$latest_timestamp = ( null !== $query->get_latest_timestamp() ) ? $query->get_latest_timestamp() : time();
 
 				//set autoarchive date based on latest timestamp
 				$autoarchive_date = strtotime( ' + ' . self::$auto_archive_days . ' days', $latest_timestamp );
