@@ -48,7 +48,7 @@ $author_info[] = [
 			<?php } ?>
 		</div>
 		<div style="display: inline-block; font-family: 'DecimaMono', Consolas, Monaco, monospace; color: #999; font-size:13px;">
-			<time datetime="<?php echo esc_attr( date( 'c', $timestamp ) ); ?>" class="liveblog-timestamp"><?php echo esc_html( date( 'g:i A', $timestamp ) ); ?></time>
+			<time datetime="<?php echo esc_attr( gmdate( 'c', $timestamp ) ); ?>" class="liveblog-timestamp"><?php echo esc_html( gmdate( 'g:i A', $timestamp ) ); ?></time>
 		</div>
 	</header>
 
