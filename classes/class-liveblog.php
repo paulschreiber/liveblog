@@ -1983,8 +1983,8 @@ if ( ! class_exists( 'Liveblog' ) ) :
 					'headline'         => Liveblog_Entry::get_entry_title( $entry ),
 					'url'              => $entry->share_link,
 					'mainEntityOfPage' => $entry->share_link,
-					'datePublished'    => date( 'c', $entry->entry_time ),
-					'dateModified'     => date( 'c', $entry->timestamp ),
+					'datePublished'    => gmdate( 'c', $entry->entry_time ),
+					'dateModified'     => gmdate( 'c', $entry->timestamp ),
 					'image'            => Liveblog_Entry::get_entry_featured_image_src( $entry ),
 					'publisher'        => $publisher_data,
 					'articleBody'      => [
@@ -2014,7 +2014,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			}
 			$liveblog_metadata['liveBlogUpdate'] = $blog_updates;
 			if ( $last_entry ) {
-				$liveblog_metadata['dateModified'] = date( 'c', $last_entry->timestamp );
+				$liveblog_metadata['dateModified'] = gmdate( 'c', $last_entry->timestamp );
 			}
 
 			$metadata = array_merge( $liveblog_metadata, $metadata );
