@@ -54,11 +54,11 @@ $author_info[] = [
 
 	<div class="liveblog-entry-content">
 		<?php
-			if ( $is_amp ) {
-				Liveblog_AMP_Template::sanitize_html( $content );
-			} else {
-				echo wp_kses_post( $content );
-			}
+		if ( $is_amp ) {
+			Liveblog_AMP_Template::sanitize_html( $content );
+		} else {
+			echo wp_kses_post( $content );
+		}
 		?>
 	</div>
 </div>
