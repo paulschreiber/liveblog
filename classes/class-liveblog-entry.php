@@ -421,12 +421,12 @@ class Liveblog_Entry {
 		$author_name = self::get_userdata_with_filter( $author_id );
 		$author_name = is_object( $author_name ) && isset( $author_name->display_name ) ? $author_name->display_name : '';
 
-		$partial = "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}' ";
+		$partial = "slack_entry_id='{$ts}']{$content['content']}[/liveblog_entry]";
 		if ( $should_return_partial ) {
-			$partial = '';
+			return $partial;
 		}
 
-		return $partial . "slack_entry_id='{$ts}']{$content['content']}[/liveblog_entry]";
+		return "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}' " . $partial;
 	}
 
 	/**
