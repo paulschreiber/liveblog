@@ -409,7 +409,7 @@ class Liveblog_AMP {
 	 * @return string        Time Ago
 	 */
 	public static function get_entry_time_ago( $entry ) {
-		return human_time_diff( $entry->entry_time, current_time( 'timestamp', true ) ) . ' ago';
+		return human_time_diff( $entry->entry_time, time() ) . ' ago';
 	}
 
 	/**
