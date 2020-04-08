@@ -1,4 +1,5 @@
-<?php
+<?php // phpcs:ignore WordPressVIPMinimum.Variables.VariableAnalysis.UnusedVariable
+// VIPWPCS bug: https://github.com/Automattic/VIP-Coding-Standards/issues/446
 
 /**
  * Class Liveblog_AMP_Template
