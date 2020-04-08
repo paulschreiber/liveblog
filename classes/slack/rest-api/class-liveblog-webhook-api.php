@@ -193,10 +193,15 @@ class Liveblog_Webhook_API {
 		$liveblog_entry = self::get_entry_by_message_id( $client_msg_id ?? 0 );
 		$allow_edits    = isset( $settings['enable_entry_updates'] ) && 'on' === $settings['enable_entry_updates'];
 
-		if ( ! empty( $body->event->thread_ts ) && ! $is_edit ) {
+		if ( ! empty( $body->event->thread_ts ) || ( isset( $body->event->previous_message ) && ! empty( $body->event->previous_message->thread_ts ) ) ) {
 			// This is a threaded reply; handle it.
-			$parent = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel );
-			return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
+			$thread_ts = $is_edit ? $body->event->previous_message->thread_ts : $body->event->thread_ts;
+			$parent    = self::get_post_by_ts( $thread_ts, $body->event->channel );
+			if ( ! $is_edit ) {
+				return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
+			}
+
+			return Liveblog_Entry::update_threaded_entry( $body, $parent, $user );
 		} elseif ( $allow_edits && $is_edit && $liveblog_entry && 'draft' === $liveblog_entry->post_status ) {
 			$original_text = $body->event->message->text;
 			$entry_data    = self::sanitize_entry( $original_text );
