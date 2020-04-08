@@ -450,16 +450,16 @@ class Liveblog_Entry {
 		}
 
 		// Modify the entry data to get the old shortcode.
-		$modified_entry = $entry_data;
+		$modified_entry              = $entry_data;
 		$modified_entry->event->text = $entry_data->event->previous_message->text;
-		$modified_entry->event->ts = $entry_data->event->previous_message->ts;
+		$modified_entry->event->ts   = $entry_data->event->previous_message->ts;
 
 		$shortcode_to_replace = self::get_entry_shortcode( $modified_entry, $user, $parent_post->post_parent, true );
-		$shortcode_to_replace = preg_replace('/\t+/', '', $shortcode_to_replace);
+		$shortcode_to_replace = preg_replace( '/\t+/', '', $shortcode_to_replace );
 
 		// Edited entries have a data.event.message.text attribute instead of just data.event.text - blame slack.
 		$entry_data->event->text = $entry_data->event->message->text;
-		$new_shortcode = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent, true );
+		$new_shortcode           = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent, true );
 
 		$content = str_replace( $shortcode_to_replace, $new_shortcode, $parent_post->post_content );
 
@@ -507,7 +507,7 @@ class Liveblog_Entry {
 				'content'  => $parent_post->post_content,
 				'headline' => $parent_post->post_title,
 				'status'   => $parent_post->post_status,
-			] 
+			]
 		);
 	}
 
