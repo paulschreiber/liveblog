@@ -55,7 +55,13 @@ class Liveblog_Webhook_API {
 
 		if ( ! empty( $settings['enable_debug'] ) && 'on' === $settings['enable_debug'] ) {
 			if ( extension_loaded( 'newrelic' ) ) {
-				newrelic_notice_error( $raw_body );
+				newrelic_notice_error(
+					wp_json_encode( [
+						'server_name'  => isset( $_SERVER['server_name'] ) ? filter_var( FILTER_SANITIZE_STRING, $_SERVER['server_name'] ) : '',
+						'time'         => current_time( 'mysql' ),
+						'request_body' => $body,
+					] )
+				);
 			}
 		}
 
