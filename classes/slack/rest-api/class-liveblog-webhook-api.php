@@ -57,7 +57,7 @@ class Liveblog_Webhook_API {
 			if ( extension_loaded( 'newrelic' ) ) {
 				newrelic_notice_error(
 					wp_json_encode( [
-						'server_name'  => isset( $_SERVER['server_name'] ) ? filter_var( FILTER_SANITIZE_STRING, $_SERVER['server_name'] ) : '',
+						'server_name'  => gethostname(),
 						'time'         => current_time( 'mysql' ),
 						'request_body' => $body,
 					] )
