@@ -19,6 +19,8 @@ class Liveblog_CPT {
 	public static function hooks() {
 		self::$cpt_slug = apply_filters( 'liveblog_cpt_slug', self::DEFAULT_CPT_SLUG );
 
+		add_post_type_support( self::$cpt_slug, Liveblog::KEY );
+
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'before_delete_post', [ __CLASS__, 'delete_children' ] );
 		add_action( 'pre_get_posts', [ __CLASS__, 'filter_children_from_query' ] );
