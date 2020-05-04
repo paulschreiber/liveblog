@@ -215,7 +215,6 @@ class Liveblog_Metadata {
 		$title    = isset( $meta[ self::METADATA_EVENT_TITLE ] ) ? $meta[ self::METADATA_EVENT_TITLE ] : '';
 		$location = isset( $meta[ self::METADATA_EVENT_LOCATION ] ) ? $meta[ self::METADATA_EVENT_LOCATION ] : '';
 
-		echo '<hr>';
 		echo '<p><b>Event Metadata</b></p>';
 
 		self::print_text_field( self::METADATA_START_TIME, 'date', 'Coverage Start Date', $start );
