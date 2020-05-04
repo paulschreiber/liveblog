@@ -17,7 +17,7 @@ class Liveblog_Slack {
 		Liveblog_Slash_Command_API::hooks();
 		Liveblog_Import_Authors_Slack_ID::hooks();
 
-		if ( 'production' !== VIP_GO_ENV ) {
+		if ( defined( 'VIP_GO_ENV' ) && 'production' !== VIP_GO_ENV ) {
 			add_filter( 'restricted_site_access_is_restricted', [ __CLASS__, 'whitelist_slack_endpoint' ], 10, 2 );
 		}
 
