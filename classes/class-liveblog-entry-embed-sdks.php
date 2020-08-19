@@ -11,7 +11,7 @@ class Liveblog_Entry_Embed_SDKs {
 	 * @var A list of provider SDKs
 	 */
 	protected static $sdks = [
-		'facebook-sdk'     => LIVEBLOG_PLUGIN_URL . 'assets/facebook-sdk.js',
+		'facebook-sdk'     => LIVEBLOG_PLUGIN_URL . 'assets/facebookSdk.js',
 		'platform-twitter' => 'https://platform.twitter.com/widgets.js',
 		'instagram'        => 'https://platform.instagram.com/en_US/embeds.js',
 		'reddit'           => 'https://embed.redditmedia.com/widgets/platform.js',
