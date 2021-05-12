@@ -52,8 +52,8 @@ class Liveblog_Cron {
 
 				$post_id = $post->ID;
 
-				//Lets grab todays day, convert it to a timestamp and look for any set auto archive date.
-				$today  = strtotime( date( 'Y-m-d H:i:s' ) );
+				// Grab today's day, convert it to a timestamp and look for any set auto archive date.
+				$today  = strtotime( gmdate( 'Y-m-d H:i:s' ) );
 				$expiry = get_post_meta( $post_id, Liveblog::$auto_archive_expiry_key, true );
 
 				//if we have an expiry date lets compare them and if the

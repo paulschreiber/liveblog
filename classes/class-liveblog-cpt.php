@@ -7,7 +7,7 @@
  * Register and handle the "Live Blog" Custom Post Type
  */
 class Liveblog_CPT {
-	const DEFAULT_CPT_SLUG = 'liveblog';
+	const DEFAULT_CPT_SLUG = 'liveblog_post';
 
 	public static $cpt_slug;
 
@@ -17,7 +17,11 @@ class Liveblog_CPT {
 	 * @return object|WP_Error
 	 */
 	public static function hooks() {
+		// Do not use the name 'liveblog' for the slug. It conflicts with the
+		// query parameter of the same name (Liveblog::KEY).
 		self::$cpt_slug = apply_filters( 'liveblog_cpt_slug', self::DEFAULT_CPT_SLUG );
+
+		add_post_type_support( self::$cpt_slug, Liveblog::KEY );
 
 		add_action( 'init', [ __CLASS__, 'register_post_type' ] );
 		add_action( 'before_delete_post', [ __CLASS__, 'delete_children' ] );
@@ -192,7 +196,7 @@ class Liveblog_CPT {
 	 * @return object|WP_Error
 	 */
 	public static function register_post_type() {
-		return register_post_type(
+		return register_post_type( // phpcs:ignore WordPress.NamingConventions.ValidPostTypeSlug.NotStringLiteral
 			self::$cpt_slug,
 			[
 				'labels'        => [

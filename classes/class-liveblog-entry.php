@@ -388,7 +388,7 @@ class Liveblog_Entry {
 
 		// Store meta for newly created drafts
 		if ( 'draft' === $entry->post_status ) {
-			update_post_meta( $entry->ID, '_new_draft', current_time( 'timestamp' ) );
+			update_post_meta( $entry->ID, '_new_draft', time() );
 		}
 
 		return $entry;
@@ -397,13 +397,14 @@ class Liveblog_Entry {
 	/**
 	 * Gets the formatted shortcode for an entry.
 	 *
-	 * @param Object $entry_data  The entry to create a shortcode for.
-	 * @param mixed  $user        User ID or empty string.
-	 * @param int    $liveblog_id The liveblog post ID.
+	 * @param Object $entry_data            The entry to create a shortcode for.
+	 * @param mixed  $user                  User ID or empty string.
+	 * @param int    $liveblog_id           The liveblog post ID.
+	 * @param bool   $should_return_partial Rather to retrieve a partial shortcode for search/replace.
 	 *
 	 * @return string
 	 */
-	private static function get_entry_shortcode( $entry_data, $user, $liveblog_id = 0 ) {
+	private static function get_entry_shortcode( $entry_data, $user, $liveblog_id = 0, $should_return_partial = false ) {
 		if ( empty( $user ) || ! isset( $entry_data->event ) || empty( $entry_data->event->text ) ) {
 			return '';
 		}
@@ -414,14 +415,63 @@ class Liveblog_Entry {
 		}
 
 		$author_id   = absint( $user );
-		$timestamp   = current_time( 'timestamp' );
+		$ts          = $entry_data->event->ts;
+		$timestamp   = time();
 		$content     = Liveblog_Webhook_API::sanitize_entry( $entry_data->event->text, $liveblog_id, $entry_data->event->files ?? [] );
 		$author_name = self::get_userdata_with_filter( $author_id );
 		$author_name = is_object( $author_name ) && isset( $author_name->display_name ) ? $author_name->display_name : '';
 
-		return "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}']
-		{$content['content']}
-		[/liveblog_entry]";
+		$partial = "slack_entry_id='{$ts}']{$content['content']}[/liveblog_entry]";
+		if ( $should_return_partial ) {
+			return $partial;
+		}
+
+		return "[liveblog_entry author_id='{$author_id}' timestamp='{$timestamp}' author_name='{$author_name}' " . $partial;
+	}
+
+	/**
+	 * Updates a threaded reply in the parent entry.
+	 *
+	 * @param Object $entry_data The entry object.
+	 * @param int    $parent_id  Parent ID to insert the entry content inside.
+	 *
+	 * @see Liveblog_Webhook_API::process_event()
+	 *
+	 * @return Liveblog_Entry|WP_Error Liveblog entry or error on failure.
+	 */
+	public static function update_threaded_entry( $entry_data, $parent_id, $user ) {
+		$parent_post = get_post( $parent_id );
+		if ( ! $parent_post || ! isset( $entry_data->event->previous_message ) ) {
+			return new WP_Error( 'threaded-entry', __( 'The parent entry was not found.', 'liveblog' ) );
+		}
+
+		if ( 'publish' === $parent_post->post_status ) {
+			return new WP_Error( 'thread-parent-published', __( 'The parent entry is published', 'liveblog' ) );
+		}
+
+		// Modify the entry data to get the old shortcode.
+		$modified_entry              = $entry_data;
+		$modified_entry->event->text = $entry_data->event->previous_message->text;
+		$modified_entry->event->ts   = $entry_data->event->previous_message->ts;
+
+		$shortcode_to_replace = self::get_entry_shortcode( $modified_entry, $user, $parent_post->post_parent, true );
+		$shortcode_to_replace = preg_replace( '/\t+/', '', $shortcode_to_replace );
+
+		// Edited entries have a data.event.message.text attribute instead of just data.event.text - blame slack.
+		$entry_data->event->text = $entry_data->event->message->text;
+		$new_shortcode           = self::get_entry_shortcode( $entry_data, $user, $parent_post->post_parent, true );
+
+		$content = str_replace( $shortcode_to_replace, $new_shortcode, $parent_post->post_content );
+
+		return self::update(
+			[
+				'entry_id' => $parent_post->ID,
+				'post_id'  => $parent_post->post_parent,
+				'content'  => $content,
+				'headline' => $parent_post->post_title,
+				'status'   => $parent_post->post_status,
+			]
+		);
 	}
 
 	/**
@@ -450,14 +500,14 @@ class Liveblog_Entry {
 		}
 
 		$parent_post->post_content .= "\n\n" . $shortcode;
-		self::update(
+		return self::update(
 			[
 				'entry_id' => $parent_post->ID,
 				'post_id'  => $parent_post->post_parent,
 				'content'  => $parent_post->post_content,
 				'headline' => $parent_post->post_title,
 				'status'   => $parent_post->post_status,
-			] 
+			]
 		);
 	}
 

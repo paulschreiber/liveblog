@@ -7,7 +7,7 @@
  * Holds methods for WP_CLI command related to live blog migration
  * Class Liveblog_Migration_WP_CLI
  */
-class Liveblog_Migration_WP_CLI extends WPCOM_VIP_CLI_Command {
+class Liveblog_Migration_WP_CLI extends WP_CLI_Command {
 
 	public static $cpt_slug;
 
@@ -231,6 +231,25 @@ class Liveblog_Migration_WP_CLI extends WPCOM_VIP_CLI_Command {
 				sleep( 5 );
 			}
 		}
+	}
+
+	/*
+	 *  Clear all of the caches for memory management
+	 */
+	protected function stop_the_insanity() {
+		global $wpdb, $wp_object_cache;
+
+		$wpdb->queries = array(); // or define( 'WP_IMPORTING', true );
+
+		if ( !is_object( $wp_object_cache ) )
+			return;
+
+		$wp_object_cache->group_ops = array();
+		$wp_object_cache->memcache_debug = array();
+		$wp_object_cache->cache = array();
+
+		if ( is_callable( $wp_object_cache, '__remoteset' ) )
+			$wp_object_cache->__remoteset(); // important
 	}
 }
 

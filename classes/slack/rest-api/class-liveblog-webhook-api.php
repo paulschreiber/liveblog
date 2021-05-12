@@ -53,6 +53,18 @@ class Liveblog_Webhook_API {
 			return new WP_Error( 'slack_not_configured', 'Slack liveblog integration is missing the slack signing secret', [ 'status' => 200 ] );
 		}
 
+		if ( ! empty( $settings['enable_debug'] ) && 'on' === $settings['enable_debug'] ) {
+			if ( extension_loaded( 'newrelic' ) ) {
+				$encoded_log = wp_json_encode( [
+					'lb_server_name'  => gethostname(),
+					'lb_time'         => current_time( 'mysql' ),
+					'lb_request_body' => json_decode( $raw_body, true ),
+				] );
+
+				newrelic_notice_error( $encoded_log ?? 'empty' );
+			}
+		}
+
 		//Validate slack request
 		$validate = self::validate_request( $request );
 		if ( is_wp_error( $validate ) ) {
@@ -193,10 +205,15 @@ class Liveblog_Webhook_API {
 		$liveblog_entry = self::get_entry_by_message_id( $client_msg_id ?? 0 );
 		$allow_edits    = isset( $settings['enable_entry_updates'] ) && 'on' === $settings['enable_entry_updates'];
 
-		if ( ! empty( $body->event->thread_ts ) && ! $is_edit ) {
+		if ( ! empty( $body->event->thread_ts ) || ( isset( $body->event->previous_message ) && ! empty( $body->event->previous_message->thread_ts ) ) ) {
 			// This is a threaded reply; handle it.
-			$parent = self::get_post_by_ts( $body->event->thread_ts, $body->event->channel );
-			return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
+			$thread_ts = $is_edit ? $body->event->previous_message->thread_ts : $body->event->thread_ts;
+			$parent    = self::get_post_by_ts( $thread_ts, $body->event->channel );
+			if ( ! $is_edit ) {
+				return Liveblog_Entry::insert_threaded_entry( $body, $parent, $user );
+			}
+
+			return Liveblog_Entry::update_threaded_entry( $body, $parent, $user );
 		} elseif ( $allow_edits && $is_edit && $liveblog_entry && 'draft' === $liveblog_entry->post_status ) {
 			$original_text = $body->event->message->text;
 			$entry_data    = self::sanitize_entry( $original_text );
@@ -313,7 +330,7 @@ class Liveblog_Webhook_API {
 					}
 				} elseif ( $is_oembed ) {
 					// append new line to oembeds so that you can have back to back embed links
-					$link = PHP_EOL . $match[1] . PHP_EOL;
+					$link = '<p>' . $match[1] . '</p>';
 				}
 
 				return $link;

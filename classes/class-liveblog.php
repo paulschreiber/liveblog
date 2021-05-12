@@ -10,7 +10,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 	final class Liveblog {
 
 		/** Constants *************************************************************/
-		const VERSION                 = '1.9.8';
+		const VERSION                 = '1.9.9';
 		const REWRITES_VERSION        = 1;
 		const MIN_WP_VERSION          = '4.4';
 		const MIN_WP_REST_API_VERSION = '4.4';
@@ -1250,7 +1250,6 @@ if ( ! class_exists( 'Liveblog' ) ) :
 						'use_rest_api'                 => intval( self::use_rest_api() ),
 						'endpoint_url'                 => self::get_entries_endpoint_url(),
 						'prefill_author_field'         => apply_filters( 'liveblog_prefill_author_field', true ),
-						'use_tinymce'                  => apply_filters( 'liveblog_use_tinymce_editor', false ),
 						'editorSettings'               => apply_filters(
 							'liveblog_tinymce_editor_settings',
 							[
@@ -1553,7 +1552,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 
 				//Instantiate a entry query object
 				$query            = new Liveblog_Entry_Query( $post_id, self::KEY );
-				$latest_timestamp = ( null !== $query->get_latest_timestamp() ) ? $query->get_latest_timestamp() : strtotime( date( 'Y-m-d H:i:s' ) );
+				$latest_timestamp = ( null !== $query->get_latest_timestamp() ) ? $query->get_latest_timestamp() : time();
 
 				//set autoarchive date based on latest timestamp
 				$autoarchive_date = strtotime( ' + ' . self::$auto_archive_days . ' days', $latest_timestamp );
@@ -1984,8 +1983,8 @@ if ( ! class_exists( 'Liveblog' ) ) :
 					'headline'         => Liveblog_Entry::get_entry_title( $entry ),
 					'url'              => $entry->share_link,
 					'mainEntityOfPage' => $entry->share_link,
-					'datePublished'    => date( 'c', $entry->entry_time ),
-					'dateModified'     => date( 'c', $entry->timestamp ),
+					'datePublished'    => gmdate( 'c', $entry->entry_time ),
+					'dateModified'     => gmdate( 'c', $entry->timestamp ),
 					'image'            => Liveblog_Entry::get_entry_featured_image_src( $entry ),
 					'publisher'        => $publisher_data,
 					'articleBody'      => [
@@ -2015,7 +2014,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			}
 			$liveblog_metadata['liveBlogUpdate'] = $blog_updates;
 			if ( $last_entry ) {
-				$liveblog_metadata['dateModified'] = date( 'c', $last_entry->timestamp );
+				$liveblog_metadata['dateModified'] = gmdate( 'c', $last_entry->timestamp );
 			}
 
 			$metadata = array_merge( $liveblog_metadata, $metadata );

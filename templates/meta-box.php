@@ -13,7 +13,7 @@ foreach ( $buttons as $button ) :
 	}
 	?>
 <li>
-	<button class="button <?php echo $button['primary'] ? 'button-primary' : ''; ?>" <?php echo $button['disabled'] ? 'disabled="disabled"' : ''; ?> value="<?php echo esc_attr( $button['value'] ); ?>">
+	<button class="button <?php echo $button['primary'] ? 'button-primary' : ''; ?>" <?php echo $button['disabled'] ? 'disabled="disabled"' : ''; ?> name="state" value="<?php echo esc_attr( $button['value'] ); ?>">
 		<?php echo esc_html( $button['text'] ); ?>
 	</button>
 	<p><?php echo wp_kses_post( $button['description'] ); ?></p>

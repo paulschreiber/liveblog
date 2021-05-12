@@ -347,7 +347,7 @@ class EditorContainer extends Component {
           clearable={false}
         />
 
-        { ( !isEditing || ( isEditing && 'draft' === status ) ) && <button
+        {(!isEditing || (isEditing && 'draft' === status)) && <button
           disabled={ canPublish ? '' : 'disabled'}
           className="button button-secondary button-large liveblog-btn liveblog-draft-btn"
           onClick={ (event) => {
