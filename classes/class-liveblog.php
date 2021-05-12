@@ -178,7 +178,7 @@ if ( ! class_exists( 'Liveblog' ) ) :
 			add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ], 99 );
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_scripts' ], 99 );
 			add_action( 'admin_enqueue_scripts', [ __CLASS__, 'admin_enqueue_scripts' ] );
-			add_action( 'pre_get_posts', [ __CLASS__, 'add_custom_post_type_support' ] );
+			add_action( 'after_setup_theme', [ __CLASS__, 'add_custom_post_type_support' ] );
 			add_action( 'edit_form_after_editor', [ __CLASS__, 'add_liveblog_after_editor' ] );
 			add_action( 'wp_head', [ __CLASS__, 'print_liveblog_metadata' ] );
 		}
