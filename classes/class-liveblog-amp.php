@@ -481,11 +481,14 @@ class Liveblog_AMP {
 	 * @return string                   Entry Link
 	 */
 	public static function build_single_entry_permalink( $permalink, $id ) {
-		return add_query_arg(
-			[
-				'liveblog_id' => $id,
-			],
-			$permalink
+		return apply_filters( 'liveblog_single_entry_permalink',
+			add_query_arg(
+				[
+					'liveblog_id' => $id,
+				],
+				$permalink
+			),
+			$id
 		);
 	}
 
